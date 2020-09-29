@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{2167C704-7D16-41C7-BE5A-AB16DFC69384}</ProjectGuid>
+    <RootNamespace>Project1</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <ProjectName>pupil_extraction</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>C:\KernelData\0 code lib\boost_1_68_0;C:\KernelData\0 code lib\tbb2018_20180822oss\include;C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib;C:\KernelData\0 code lib\opencv\build\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtGui;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtCore;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include;C:\Users\w9349\OneDrive\document\mycodelib\include;D:\OneDrive - Platinum\mycodelib\pupil detection\sources;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\KernelData\0 code lib\opencv\mybuild\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\KernelData\0 code lib\boost_1_68_0;C:\KernelData\0 code lib\tbb2018_20180822oss\include;C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtCore;C:\KernelData\0 code lib\opencv\build\include;D:\OneDrive - Platinum\mycodelib\pupil detection\sources;C:\Users\w9349\OneDrive\document\mycodelib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\KernelData\0 code lib\opencv\mybuild\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Qt5Widgetsd.lib;Qt5Guid.lib;Qt5Cored.lib;opencv_world343.lib;opencv_world343d.lib;C:\KernelData\0 code lib\tbb2018_20180822oss\lib\intel64\vc14\tbb.lib;C:\KernelData\0 code lib\tbb2018_20180822oss\lib\intel64\vc14\tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Qt5Widgets.lib;Qt5Gui.lib;Qt5Core.lib;opencv_world343.lib;opencv_world343d.lib;C:\KernelData\0 code lib\tbb2018_20180822oss\lib\intel64\vc14\tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\cvx.cpp" />
+    <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\PupilTracker.cpp" />
+    <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\utils.cpp" />
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\m_PupilDetectorHaar.cpp" />
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ElSe.cpp" />
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ExCuSe.cpp" />
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\PupilDetectionMethod.cpp" />
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\PuRe.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\ConicSection.h" />
+    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\cvx.h" />
+    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\high_resolution_timer.hpp" />
+    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\PupilTracker.h" />
+    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\timer.h" />
+    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\utils.h" />
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\dataset_test.h" />
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\m_PupilDetectorHaar.h" />
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ElSe.h" />
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ExCuSe.h" />
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\PupilDetectionMethod.h" />
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\PuRe.h" />
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\pupil_extraction.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

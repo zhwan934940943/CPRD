@@ -1,0 +1,40 @@
+%YAML:1.0
+---
+R: !!opencv-matrix
+   rows: 0
+   cols: 0
+   dt: u
+   data: []
+R: T
+R: !!opencv-matrix
+   rows: 0
+   cols: 0
+   dt: u
+   data: []
+R1: !!opencv-matrix
+   rows: 0
+   cols: 0
+   dt: u
+   data: []
+R1: R2
+R1: !!opencv-matrix
+   rows: 0
+   cols: 0
+   dt: u
+   data: []
+P1: !!opencv-matrix
+   rows: 0
+   cols: 0
+   dt: u
+   data: []
+P1: P2
+P1: !!opencv-matrix
+   rows: 0
+   cols: 0
+   dt: u
+   data: []
+Q: !!opencv-matrix
+   rows: 0
+   cols: 0
+   dt: u
+   data: []
