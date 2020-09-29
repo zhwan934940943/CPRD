@@ -27,19 +27,19 @@
     <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\utils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\m_PupilDetectorHaar.cpp">
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PuRe.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\ElSe.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\ExCuSe.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\m_PupilDetectorHaar.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\PupilDetectionMethod.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ElSe.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ExCuSe.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PuRe.cpp">
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PupilDetectionMethod.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,25 +62,25 @@
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\m_PupilDetectorHaar.h">
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\ElSe.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\pupil_extraction.h">
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\dataset_test.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\dataset_test.h">
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\m_PupilDetectorHaar.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ElSe.h">
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\pupil_extraction.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ExCuSe.h">
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PupilDetectionMethod.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\PupilDetectionMethod.h">
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PuRe.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\PuRe.h">
+    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\ExCuSe.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
