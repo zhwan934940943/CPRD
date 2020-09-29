@@ -39,7 +39,7 @@
     <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ExCuSe.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\PuRe.cpp">
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PuRe.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

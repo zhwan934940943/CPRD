@@ -137,7 +137,7 @@
     <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ElSe.cpp" />
     <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\ExCuSe.cpp" />
     <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\PupilDetectionMethod.cpp" />
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\sources\PuRe2\PuRe.cpp" />
+    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PuRe.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
