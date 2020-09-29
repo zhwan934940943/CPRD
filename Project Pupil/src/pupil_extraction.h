@@ -13,7 +13,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <my_lib.h>
-#include "src/m_PupilDetectorHaar.h"
+#include "m_PupilDetectorHaar.h"
 //#include <m_PupilDetectorHaar.cpp> //由于项目中没有添加，所以这里必须包含
 
 

@@ -3,8 +3,8 @@
 #include <opencv2/opencv.hpp>
 
 #include <my_lib.h>
-#include "src/pupil_extraction.h"
-#include "src/dataset_test.h"
+#include "pupil_extraction.h"
+#include "dataset_test.h"
 #include "PuRe/PuRe.h"
 #include <QDebug>
 

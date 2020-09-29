@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\PupilTracker.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
@@ -40,6 +37,21 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\m_PupilDetectorHaar.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PuRe\ElSe.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PuRe\ExCuSe.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PuRe\PupilDetectionMethod.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PuRe\PuRe.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -81,6 +93,18 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\pupil_extraction.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PuRe\ElSe.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PuRe\ExCuSe.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PuRe\PupilDetectionMethod.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PuRe\PuRe.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

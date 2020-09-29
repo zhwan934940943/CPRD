@@ -133,12 +133,12 @@
     <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\cvx.cpp" />
     <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\PupilTracker.cpp" />
     <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\utils.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="PuRe\ElSe.cpp" />
-    <ClCompile Include="PuRe\ExCuSe.cpp" />
-    <ClCompile Include="PuRe\PupilDetectionMethod.cpp" />
-    <ClCompile Include="PuRe\PuRe.cpp" />
+    <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\m_PupilDetectorHaar.cpp" />
+    <ClCompile Include="src\PuRe\ElSe.cpp" />
+    <ClCompile Include="src\PuRe\ExCuSe.cpp" />
+    <ClCompile Include="src\PuRe\PupilDetectionMethod.cpp" />
+    <ClCompile Include="src\PuRe\PuRe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\ConicSection.h" />
@@ -147,13 +147,13 @@
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\PupilTracker.h" />
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\timer.h" />
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\utils.h" />
-    <ClInclude Include="PuRe\ElSe.h" />
-    <ClInclude Include="PuRe\ExCuSe.h" />
-    <ClInclude Include="PuRe\PupilDetectionMethod.h" />
-    <ClInclude Include="PuRe\PuRe.h" />
     <ClInclude Include="src\dataset_test.h" />
     <ClInclude Include="src\m_PupilDetectorHaar.h" />
     <ClInclude Include="src\pupil_extraction.h" />
+    <ClInclude Include="src\PuRe\ElSe.h" />
+    <ClInclude Include="src\PuRe\ExCuSe.h" />
+    <ClInclude Include="src\PuRe\PupilDetectionMethod.h" />
+    <ClInclude Include="src\PuRe\PuRe.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

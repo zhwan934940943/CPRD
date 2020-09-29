@@ -6,8 +6,8 @@
 #include <my_lib.h>
 #include <opencv2/opencv.hpp>
 #include "PuRe/PuRe.h"
-#include "src/m_PupilDetectorHaar.h"
-#include "src/pupil_extraction.h"
+#include "m_PupilDetectorHaar.h"
+#include "pupil_extraction.h"
 
 class DatasetTest
 {
