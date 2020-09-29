@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{2167C704-7D16-41C7-BE5A-AB16DFC69384}</ProjectGuid>
-    <RootNamespace>Project1</RootNamespace>
+    <RootNamespace>pupilDectector</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <ProjectName>pupil_extraction</ProjectName>
   </PropertyGroup>
@@ -130,30 +130,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\ElSe.cpp" />
     <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\cvx.cpp" />
     <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\PupilTracker.cpp" />
     <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\utils.cpp" />
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\m_PupilDetectorHaar.cpp" />
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\ExCuSe.cpp" />
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PupilDetectionMethod.cpp" />
-    <ClCompile Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PuRe.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PuRe\ElSe.cpp" />
+    <ClCompile Include="PuRe\ExCuSe.cpp" />
+    <ClCompile Include="PuRe\PupilDetectionMethod.cpp" />
+    <ClCompile Include="PuRe\PuRe.cpp" />
+    <ClCompile Include="src\m_PupilDetectorHaar.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\ElSe.h" />
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\ConicSection.h" />
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\cvx.h" />
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\high_resolution_timer.hpp" />
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\PupilTracker.h" />
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\timer.h" />
     <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\utils.h" />
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\dataset_test.h" />
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\m_PupilDetectorHaar.h" />
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\ExCuSe.h" />
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PupilDetectionMethod.h" />
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\PuRe2\PuRe.h" />
-    <ClInclude Include="..\..\..\..\OneDrive - Platinum\mycodelib\pupil detection\src\pupil_extraction.h" />
+    <ClInclude Include="PuRe\ElSe.h" />
+    <ClInclude Include="PuRe\ExCuSe.h" />
+    <ClInclude Include="PuRe\PupilDetectionMethod.h" />
+    <ClInclude Include="PuRe\PuRe.h" />
+    <ClInclude Include="src\dataset_test.h" />
+    <ClInclude Include="src\m_PupilDetectorHaar.h" />
+    <ClInclude Include="src\pupil_extraction.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

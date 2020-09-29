@@ -3,17 +3,15 @@
 #include <opencv2/opencv.hpp>
 
 #include <my_lib.h>
-#include <pupil_extraction.h>
-#include <dataset_test.h>
-#include <PuRe2/PuRe.h>
+#include "src/pupil_extraction.h"
+#include "src/dataset_test.h"
+#include "PuRe/PuRe.h"
 #include <QDebug>
+
 
 #include <StereoReconstructor.h>
 
-//#include<pupil-detection/PupilDetectionMethod.h>
-//#include<pupil-detection/PupilDetectionMethod.cpp>
-//#include<pupil-detection/PuRe.h>
-//#include<pupil-detection/PuRe.cpp>
+
 
 using namespace std;
 using namespace cv;
