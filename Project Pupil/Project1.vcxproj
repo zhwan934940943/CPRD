@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\KernelData\0 code lib\boost_1_68_0;C:\KernelData\0 code lib\tbb2018_20180822oss\include;C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib;C:\KernelData\0 code lib\opencv\build\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtGui;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtCore;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include;C:\Users\w9349\OneDrive\document\mycodelib\include;D:\OneDrive - Platinum\mycodelib\pupil detection\src;$(IncludePath)</IncludePath>
+    <IncludePath>C:\KernelData\0 code lib\boost_1_68_0;C:\KernelData\0 code lib\tbb2018_20180822oss\include;C:\KernelData\0 code lib\opencv\build\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtGui;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtCore;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include;C:\Users\w9349\OneDrive\document\mycodelib\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\KernelData\0 code lib\opencv\mybuild\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -130,23 +130,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\cvx.cpp" />
-    <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\PupilTracker.cpp" />
-    <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\utils.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\m_PupilDetectorHaar.cpp" />
     <ClCompile Include="src\PuRe\ElSe.cpp" />
     <ClCompile Include="src\PuRe\ExCuSe.cpp" />
     <ClCompile Include="src\PuRe\PupilDetectionMethod.cpp" />
     <ClCompile Include="src\PuRe\PuRe.cpp" />
+    <ClCompile Include="src\Swirski2012\cvx.cpp" />
+    <ClCompile Include="src\Swirski2012\PupilTracker.cpp" />
+    <ClCompile Include="src\Swirski2012\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\ConicSection.h" />
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\cvx.h" />
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\high_resolution_timer.hpp" />
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\PupilTracker.h" />
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\timer.h" />
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\utils.h" />
     <ClInclude Include="src\dataset_test.h" />
     <ClInclude Include="src\m_PupilDetectorHaar.h" />
     <ClInclude Include="src\pupil_extraction.h" />
@@ -154,6 +148,12 @@
     <ClInclude Include="src\PuRe\ExCuSe.h" />
     <ClInclude Include="src\PuRe\PupilDetectionMethod.h" />
     <ClInclude Include="src\PuRe\PuRe.h" />
+    <ClInclude Include="src\Swirski2012\ConicSection.h" />
+    <ClInclude Include="src\Swirski2012\cvx.h" />
+    <ClInclude Include="src\Swirski2012\high_resolution_timer.hpp" />
+    <ClInclude Include="src\Swirski2012\PupilTracker.h" />
+    <ClInclude Include="src\Swirski2012\timer.h" />
+    <ClInclude Include="src\Swirski2012\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

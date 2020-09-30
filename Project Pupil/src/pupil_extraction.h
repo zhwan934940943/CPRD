@@ -17,10 +17,11 @@
 //#include <m_PupilDetectorHaar.cpp> //由于项目中没有添加，所以这里必须包含
 
 
-#include <pupiltracker/PupilTracker.h>
+#include "Swirski2012/PupilTracker.h"
 #include <tbb/tbb.h>
-#include <pupiltracker/utils.h>
+#include "Swirski2012/utils.h"
 #include <boost/foreach.hpp>
+
 
 using namespace std;
 //using namespace cv;
