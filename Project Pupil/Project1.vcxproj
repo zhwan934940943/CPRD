@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\KernelData\0 code lib\boost_1_68_0;C:\KernelData\0 code lib\tbb2018_20180822oss\include;C:\KernelData\0 code lib\opencv\build\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtGui;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtCore;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include;C:\Users\w9349\OneDrive\document\mycodelib\include;$(IncludePath)</IncludePath>
+    <IncludePath>deps\boost;deps\tbb\include;C:\KernelData\0 code lib\opencv\build\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtGui;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtCore;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include;C:\Users\w9349\OneDrive\document\mycodelib\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\KernelData\0 code lib\opencv\mybuild\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -88,7 +88,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Qt5Widgetsd.lib;Qt5Guid.lib;Qt5Cored.lib;opencv_world343.lib;opencv_world343d.lib;C:\KernelData\0 code lib\tbb2018_20180822oss\lib\intel64\vc14\tbb.lib;C:\KernelData\0 code lib\tbb2018_20180822oss\lib\intel64\vc14\tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Qt5Widgetsd.lib;Qt5Guid.lib;Qt5Cored.lib;opencv_world343.lib;opencv_world343d.lib;deps\tbb\lib\intel64\vc14\tbb.lib;deps\tbb\lib\intel64\vc14\tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

@@ -14,12 +14,11 @@
 
 #include <my_lib.h>
 #include "m_PupilDetectorHaar.h"
-//#include <m_PupilDetectorHaar.cpp> //由于项目中没有添加，所以这里必须包含
 
 
 #include "Swirski2012/PupilTracker.h"
-#include <tbb/tbb.h>
 #include "Swirski2012/utils.h"
+#include <tbb/tbb.h>
 #include <boost/foreach.hpp>
 
 
