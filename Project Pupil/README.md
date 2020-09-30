@@ -5,8 +5,8 @@ opencv 3
 
 
 
-PuRe is the original version with my comment.
 ## PuRe dependencies
+PuRe is the original version with my comment.
 1 Qt
 
 
