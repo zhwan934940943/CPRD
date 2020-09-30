@@ -7,6 +7,7 @@ opencv 3
 
 ## PuRe dependencies
 PuRe is the original version with my comment.
+
 1 Qt
 
 
