@@ -50,8 +50,8 @@ public:
 		haar.draw(img_BGR, 0);
 		}, "haar\t");
 
-		Rect pupil_rect = rectScale(haar.outer_rect2_, 1)
-			&haar.outer_rect_; //Rect(0, 0, img_gray.cols, img_gray.rows);
+		Rect pupil_rect = rectScale(haar.outer_rect_fine_, 1)
+			&haar.outer_rect_coarse_; //Rect(0, 0, img_gray.cols, img_gray.rows);
 		Mat img_pupil = Mat(img_gray, pupil_rect);
 
 		//1.2 smoothing
@@ -71,8 +71,8 @@ public:
 
 		section("2 detect pupil contour with Canny");
 		Mat edges, edges_;
-		Rect inlinerRect = haar.pupil_rect2_ - haar.outer_rect2_.tl();
-		Rect inlinerRect2 = (haar.pupil_rect2_&haar.pupil_rect_) - haar.outer_rect2_.tl();
+		Rect inlinerRect = haar.pupil_rect_fine_ - haar.outer_rect_fine_.tl();
+		Rect inlinerRect2 = (haar.pupil_rect_fine_&haar.pupil_rect_coarse_) - haar.outer_rect_fine_.tl();
 
 		measureTime([&]() {detectPupilContour(img_pupil, edges, inlinerRect);
 		edges_ = edges & img_bw;
@@ -133,10 +133,10 @@ public:
 	void detectPupilRegion(const Mat& img_gray, PupilDetectorHaar& haar)
 	{
 		HaarParams params;
-		params.width_min = 31;
-		params.width_max = 120; //240的一半
-		params.wh_step = 4; //影响程序的执行速度
-		params.ratio = 2;
+		haar.ratio_outer_ = 2;
+		haar.kf_ = 1;
+		haar.useSquareHaar_ = false;
+		haar.useInitRect_ = false;
 
 		haar.detect(img_gray, params);
 

@@ -61,7 +61,7 @@ public:
 		params.width_min = 32;
 		params.width_max = 120; //240的一半
 		params.wh_step = 4; //影响程序的执行速度
-		params.ratio = 3;
+		params.outer_ratio = 3;
 
 		for (int i = 0; i < 1; ++i)//imagelist.size()
 		{
@@ -119,14 +119,14 @@ public:
 		params.initRectFlag = false;
 		params.squareHaarFlag = false;
 		//kernel策略1：ratio多选1
-		params.ratio = 1.42; //1.42, 2, 3, 4, 5, 6, 7
+		params.outer_ratio = 1.42; //1.42, 2, 3, 4, 5, 6, 7
 		//kernel策略2：mu_inner权重
 		params.kf = 1; //1,1.1,1.2,1.3
 		params.wh_step = 4;//2,3,4
 		params.xy_step = 4;
 		cout << "SwirskiTest_Haar" << "\n" << "initRectFlag=" << params.initRectFlag << "	"
 			<< "squareHaarFlag=" << params.squareHaarFlag << "\n"
-			<< "r=" << params.ratio << "	" << "kf=" << params.kf << "	"
+			<< "r=" << params.outer_ratio << "	" << "kf=" << params.kf << "	"
 			<< "wh_step=" << params.wh_step << "	" << "xy_step=" << params.xy_step << "\n";
 
 		//for (int i = 0; i != caselist.size(); i++)//caselist.size()
@@ -155,7 +155,7 @@ public:
 
 
 			//保存路径
-			string errorfile_name = "r" + to_string((params.ratio)) + " "
+			string errorfile_name = "r" + to_string((params.outer_ratio)) + " "
 				+ dataset_name + " " + casename + ".txt";
 			ofstream fout(results_dir + method_name + "/" + errorfile_name);
 			{
@@ -201,21 +201,21 @@ public:
 				Mat img_haar;
 				cvtColor(img_gray, img_haar, CV_GRAY2BGR);
 				haar.draw(img_haar, 0);
-				rectangle(img_haar, haar.pupil_rect2_, BLUE, 1, 8);
+				rectangle(img_haar, haar.pupil_rect_fine_, BLUE, 1, 8);
 
-				Mat img_pupil = img_gray(haar.pupil_rect2_);
+				Mat img_pupil = img_gray(haar.pupil_rect_fine_);
 
 
 
 
 				//save results
 				{
-					bool flag_sucess_inner = haar.pupil_rect_.contains(Point2f(x, y));
-					bool flag_sucess_outer = haar.outer_rect_.contains(Point2f(x, y));
+					bool flag_sucess_inner = haar.pupil_rect_coarse_.contains(Point2f(x, y));
+					bool flag_sucess_outer = haar.outer_rect_coarse_.contains(Point2f(x, y));
 
 					//flag: 是否备选的rect内含有pupil
 					bool flag_sucess_candidates = false;
-					vector<Rect> rectlist = haar.inner_rectlist;
+					vector<Rect> rectlist = haar.inner_rectlist_;
 					for (int i = 0; i < rectlist.size(); i++)
 					{
 						if (rectlist[i].contains(Point2f(x, y)))
@@ -225,13 +225,13 @@ public:
 						}
 					}
 
-					Point2f center(haar.pupil_rect_.x + haar.pupil_rect_.width*1.0f / 2,
-						haar.pupil_rect_.y + haar.pupil_rect_.height*1.0f / 2);
+					Point2f center(haar.pupil_rect_coarse_.x + haar.pupil_rect_coarse_.width*1.0f / 2,
+						haar.pupil_rect_coarse_.y + haar.pupil_rect_coarse_.height*1.0f / 2);
 					double error = norm(center - Point2f(x, y));
 
-					bool flag_sucess_inner2 = haar.pupil_rect2_.contains(Point2f(x, y));
-					Point2f center2(haar.pupil_rect2_.x + haar.pupil_rect2_.width*1.0f / 2,
-						haar.pupil_rect2_.y + haar.pupil_rect2_.height*1.0f / 2);
+					bool flag_sucess_inner2 = haar.pupil_rect_fine_.contains(Point2f(x, y));
+					Point2f center2(haar.pupil_rect_fine_.x + haar.pupil_rect_fine_.width*1.0f / 2,
+						haar.pupil_rect_fine_.y + haar.pupil_rect_fine_.height*1.0f / 2);
 					double error2 = norm(center2 - Point2f(x, y));
 
 
@@ -241,7 +241,7 @@ public:
 					//利用PuRe进一步提取
 					{
 						Rect boundary(0, 0, img_gray.cols, img_gray.rows);
-						Rect roiRect = rectScale(haar.pupil_rect2_, 1.42)&boundary;
+						Rect roiRect = rectScale(haar.pupil_rect_fine_, 1.42)&boundary;
 						Mat img_t = img_gray(roiRect);
 						int tau;
 						//if (haar.mu_outer_ - haar.mu_inner_ > 30)
@@ -257,7 +257,7 @@ public:
 							PuRe detector;
 							Pupil pupil = detector.run(img_t);
 							pupil.center = pupil.center + Point2f(roiRect.tl());
-							if (haar.pupil_rect2_.contains(pupil.center))
+							if (haar.pupil_rect_fine_.contains(pupil.center))
 							{
 								drawMarker(img_haar, pupil.center, Scalar(0, 0, 255));
 								if (pupil.size.width > 0)
@@ -273,12 +273,12 @@ public:
 
 					RotatedRect el = RotatedRect(Point(x, y), Size(long_axis * 2, short_axis * 2), angle * 180 / PI);
 					Rect2f rect = el.boundingRect2f();
-					float ratio_width = haar.pupil_rect_.width*1.0f / rect.width;
-					float ratio_width2 = haar.pupil_rect2_.width*1.0f / rect.width;
+					float ratio_width = haar.pupil_rect_coarse_.width*1.0f / rect.width;
+					float ratio_width2 = haar.pupil_rect_fine_.width*1.0f / rect.width;
 
 					fout << flag_sucess_inner << "	" << flag_sucess_outer << "	"
 						<< rectlist.size() << "	" << flag_sucess_candidates << "	"
-						<< error << "	" << haar.max_response_ << "	"
+						<< error << "	" << haar.max_response_coarse_ << "	"
 						<< haar.mu_inner_ << "	" << haar.mu_outer_ << "	"
 						//以下是detectToFine的结果
 						<< flag_sucess_inner2 << "	" << error2 << "	"
@@ -330,14 +330,14 @@ public:
 		params.initRectFlag = true;
 		params.squareHaarFlag = true;
 		//kernel策略1：ratio多选1
-		params.ratio = 1.42; //1.42, 2, 3, 4, 5, 6, 7
+		params.outer_ratio = 1.42; //1.42, 2, 3, 4, 5, 6, 7
 		//kernel策略2：mu_inner权重
 		params.kf = 1.4; //1,1.1,1.2,1.3
 		params.wh_step = 1;//2,3,4
 		params.xy_step = 4;
 		cout << "PupilnetDatasetTest_Haar" << "\n" << "initRectFlag=" << params.initRectFlag << "	"
 			<< "squareHaarFlag=" << params.squareHaarFlag << "\n"
-			<< "r=" << params.ratio << "	" << "kf=" << params.kf << "	"
+			<< "r=" << params.outer_ratio << "	" << "kf=" << params.kf << "	"
 			<< "wh_step=" << params.wh_step << "	" << "xy_step=" << params.xy_step << "\n";
 
 		for (int i = 0; i != caselist.size(); i++)//caselist.size()
@@ -366,7 +366,7 @@ public:
 
 
 			//保存路径
-			string errorfile_name = "r" + to_string((params.ratio)) + " "
+			string errorfile_name = "r" + to_string((params.outer_ratio)) + " "
 				+ dataset_name + " " + casename + ".txt";
 			ofstream fout(results_dir + method_name + "/" + errorfile_name);
 			{
@@ -417,9 +417,9 @@ public:
 				Mat img_haar;
 				cvtColor(img_gray, img_haar, CV_GRAY2BGR);
 				haar.draw(img_haar, 0);
-				rectangle(img_haar, haar.pupil_rect2_, BLUE, 1, 8);
+				rectangle(img_haar, haar.pupil_rect_fine_, BLUE, 1, 8);
 
-				Mat img_pupil = img_gray(haar.pupil_rect2_);
+				Mat img_pupil = img_gray(haar.pupil_rect_fine_);
 
 
 				//save results
@@ -428,12 +428,12 @@ public:
 					x = x / 2;
 					y = img_gray.rows - y / 2;
 
-					bool flag_sucess_inner = haar.pupil_rect_.contains(Point2f(x, y));
-					bool flag_sucess_outer = haar.outer_rect_.contains(Point2f(x, y));
+					bool flag_sucess_inner = haar.pupil_rect_coarse_.contains(Point2f(x, y));
+					bool flag_sucess_outer = haar.outer_rect_coarse_.contains(Point2f(x, y));
 
 					//flag: 是否备选的rect内含有pupil
 					bool flag_sucess_candidates = false;
-					vector<Rect> rectlist = haar.inner_rectlist;
+					vector<Rect> rectlist = haar.inner_rectlist_;
 					for (int i = 0; i < rectlist.size(); i++)
 					{
 						if (rectlist[i].contains(Point2f(x, y)))
@@ -443,13 +443,13 @@ public:
 						}
 					}
 
-					Point2f center(haar.pupil_rect_.x + haar.pupil_rect_.width*1.0f / 2,
-						haar.pupil_rect_.y + haar.pupil_rect_.height*1.0f / 2);
+					Point2f center(haar.pupil_rect_coarse_.x + haar.pupil_rect_coarse_.width*1.0f / 2,
+						haar.pupil_rect_coarse_.y + haar.pupil_rect_coarse_.height*1.0f / 2);
 					double error = norm(center - Point2f(x, y));
 
-					bool flag_sucess_inner2 = haar.pupil_rect2_.contains(Point2f(x, y));
-					Point2f center2(haar.pupil_rect2_.x + haar.pupil_rect2_.width*1.0f / 2,
-						haar.pupil_rect2_.y + haar.pupil_rect2_.height*1.0f / 2);
+					bool flag_sucess_inner2 = haar.pupil_rect_fine_.contains(Point2f(x, y));
+					Point2f center2(haar.pupil_rect_fine_.x + haar.pupil_rect_fine_.width*1.0f / 2,
+						haar.pupil_rect_fine_.y + haar.pupil_rect_fine_.height*1.0f / 2);
 					double error2 = norm(center2 - Point2f(x, y));
 
 
@@ -459,7 +459,7 @@ public:
 					//利用PuRe进一步提取
 					{
 						Rect boundary(0, 0, img_gray.cols, img_gray.rows);
-						Rect roiRect = rectScale(haar.pupil_rect2_, 1.42)&boundary;
+						Rect roiRect = rectScale(haar.pupil_rect_fine_, 1.42)&boundary;
 						Mat img_t = img_gray(roiRect);
 						int tau;
 						//if (haar.mu_outer_ - haar.mu_inner_ > 30)
@@ -475,7 +475,7 @@ public:
 							PuRe detector;
 							Pupil pupil = detector.run(img_t);
 							pupil.center = pupil.center + Point2f(roiRect.tl());
-							if (haar.pupil_rect2_.contains(pupil.center))
+							if (haar.pupil_rect_fine_.contains(pupil.center))
 							{
 								drawMarker(img_haar, pupil.center, Scalar(0, 0, 255));
 								if (pupil.size.width > 0)
@@ -493,7 +493,7 @@ public:
 
 					fout << flag_sucess_inner << "	" << flag_sucess_outer << "	"
 						<< rectlist.size() << "	" << flag_sucess_candidates << "	"
-						<< error << "	" << haar.max_response_ << "	"
+						<< error << "	" << haar.max_response_coarse_ << "	"
 						<< haar.mu_inner_ << "	" << haar.mu_outer_ << "	"
 						//以下是detectToFine的结果
 						<< flag_sucess_inner2 << "	" << error2 << "	"
@@ -656,14 +656,14 @@ public:
 			params.initRectFlag = true;
 			params.squareHaarFlag = false;
 			//kernel策略1：ratio多选1
-			params.ratio = 1.42; //1.42, 2, 3, 4, 5, 6, 7
+			params.outer_ratio = 1.42; //1.42, 2, 3, 4, 5, 6, 7
 			//kernel策略2：mu_inner权重
 			params.kf = 1.4; //1,1.1,1.2,1.3
 			params.wh_step = 2;//2,3,4
 			params.xy_step = 4;
 			cout << "LPWTest_Haar" << "\n" << "initRectFlag=" << params.initRectFlag << "	"
 				<< "squareHaarFlag=" << params.squareHaarFlag << "\n"
-				<< "r=" << params.ratio << "	" << "kf=" << params.kf << "	"
+				<< "r=" << params.outer_ratio << "	" << "kf=" << params.kf << "	"
 				<< "wh_step=" << params.wh_step << "	" << "xy_step=" << params.xy_step << "\n";
 
 			if (params.initRectFlag)
@@ -689,7 +689,7 @@ public:
 
 
 			//保存路径
-			string errorfile_name = "r" + to_string((params.ratio)) + " "
+			string errorfile_name = "r" + to_string((params.outer_ratio)) + " "
 				+ dataset_name + " " + casename + ".txt";
 			ofstream fout(results_dir + method_name + "/" + errorfile_name);
 			{
@@ -764,7 +764,7 @@ public:
 				//coarse_vid << img_haar;
 				//if (secondFrameFlag)
 				//	imwrite(to_string(i)+"Coarse.png", img_haar);
-				rectangle(img_haar, haar.pupil_rect2_, BLUE, 1, 8);
+				rectangle(img_haar, haar.pupil_rect_fine_, BLUE, 1, 8);
 				//if (secondFrameFlag)
 				//{
 				//	imwrite(to_string(i) + "Fine.png", img_haar);
@@ -772,12 +772,12 @@ public:
 				//}
 				//fine_vid << img_haar;
 					
-				bool flag_sucess_inner = haar.pupil_rect_.contains(Point2f(x, y));
-				bool flag_sucess_outer = haar.outer_rect_.contains(Point2f(x, y));
+				bool flag_sucess_inner = haar.pupil_rect_coarse_.contains(Point2f(x, y));
+				bool flag_sucess_outer = haar.outer_rect_coarse_.contains(Point2f(x, y));
 
 				//flag: 是否备选的rect内含有pupil
 				bool flag_sucess_candidates = false;
-				vector<Rect> rectlist = haar.inner_rectlist;
+				vector<Rect> rectlist = haar.inner_rectlist_;
 				for (int i = 0; i < rectlist.size(); i++)
 				{
 					if (rectlist[i].contains(Point2f(x, y)))
@@ -787,13 +787,13 @@ public:
 					}
 				}
 
-				Point2f center(haar.pupil_rect_.x + haar.pupil_rect_.width*1.0f / 2,
-					haar.pupil_rect_.y + haar.pupil_rect_.height*1.0f / 2);
+				Point2f center(haar.pupil_rect_coarse_.x + haar.pupil_rect_coarse_.width*1.0f / 2,
+					haar.pupil_rect_coarse_.y + haar.pupil_rect_coarse_.height*1.0f / 2);
 				double error = norm(center - Point2f(x, y));
 
-				bool flag_sucess_inner2 = haar.pupil_rect2_.contains(Point2f(x, y));
-				Point2f center2(haar.pupil_rect2_.x + haar.pupil_rect2_.width*1.0f / 2,
-					haar.pupil_rect2_.y + haar.pupil_rect2_.height*1.0f / 2);
+				bool flag_sucess_inner2 = haar.pupil_rect_fine_.contains(Point2f(x, y));
+				Point2f center2(haar.pupil_rect_fine_.x + haar.pupil_rect_fine_.width*1.0f / 2,
+					haar.pupil_rect_fine_.y + haar.pupil_rect_fine_.height*1.0f / 2);
 				double error2 = norm(center2 - Point2f(x, y));
 
 
@@ -801,7 +801,7 @@ public:
 
 				Rect boundary(0, 0, img_gray.cols, img_gray.rows);
 				double validRatio = 1.2; //策略：1.42
-				Rect validRect = rectScale(haar.pupil_rect2_, validRatio)&boundary;
+				Rect validRect = rectScale(haar.pupil_rect_fine_, validRatio)&boundary;
 				Mat img_pupil = img_gray(validRect);
 				GaussianBlur(img_pupil, img_pupil, Size(5, 5), 0, 0);
 
@@ -859,7 +859,7 @@ public:
 					//利用RANSAC
 					detector.fitPupilEllipseSwirski(img_pupil, edges_filter, ellipse_rect);
 					ellipse_rect.center = ellipse_rect.center + Point2f(validRect.tl());
-					if (haar.pupil_rect2_.contains(ellipse_rect.center) && (ellipse_rect.size.width > 0))
+					if (haar.pupil_rect_fine_.contains(ellipse_rect.center) && (ellipse_rect.size.width > 0))
 					{
 						center3 = ellipse_rect.center;
 						drawMarker(img_haar, center3, Scalar(0, 0, 255));
@@ -884,7 +884,7 @@ public:
 				{
 					fout << flag_sucess_inner << "	" << flag_sucess_outer << "	"
 						<< rectlist.size() << "	" << flag_sucess_candidates << "	"
-						<< error << "	" << haar.max_response_ << "	"
+						<< error << "	" << haar.max_response_coarse_ << "	"
 						<< haar.mu_inner_ << "	" << haar.mu_outer_ << "	"
 						//以下是detectToFine的结果
 						<< flag_sucess_inner2 << "	" << error2 << "	"
@@ -1014,14 +1014,14 @@ public:
 			params.initRectFlag = true;
 			params.squareHaarFlag = false;
 			//kernel策略1：ratio多选1
-			params.ratio = 1.42; //1.42, 2, 3, 4, 5, 6, 7
+			params.outer_ratio = 1.42; //1.42, 2, 3, 4, 5, 6, 7
 			//kernel策略2：mu_inner权重
 			params.kf = 2.0; //1,1.1,1.2,1.3
 			params.wh_step = 2;//2,3,4
 			params.xy_step = 4;
 			cout << "LPWTest_Haar" << "\n" << "initRectFlag=" << params.initRectFlag << "	"
 				<< "squareHaarFlag=" << params.squareHaarFlag << "\n"
-				<< "r=" << params.ratio << "	" << "kf=" << params.kf << "	"
+				<< "r=" << params.outer_ratio << "	" << "kf=" << params.kf << "	"
 				<< "wh_step=" << params.wh_step << "	" << "xy_step=" << params.xy_step << "\n";
 
 			if (params.initRectFlag)
@@ -1047,7 +1047,7 @@ public:
 
 
 			//保存路径
-			string errorfile_name = "r" + to_string((params.ratio)) + " "
+			string errorfile_name = "r" + to_string((params.outer_ratio)) + " "
 				+ dataset_name + " " + casename + ".txt";
 			ofstream fout(results_dir + method_name + "/" + errorfile_name);
 			{
@@ -1106,14 +1106,14 @@ public:
 				Mat img_haar;
 				cv::cvtColor(img_gray, img_haar, CV_GRAY2BGR);
 				haar.draw(img_haar, 0);
-				rectangle(img_haar, haar.pupil_rect2_, BLUE, 1, 8);
+				rectangle(img_haar, haar.pupil_rect_fine_, BLUE, 1, 8);
 
-				bool flag_sucess_inner = haar.pupil_rect_.contains(Point2f(x, y));
-				bool flag_sucess_outer = haar.outer_rect_.contains(Point2f(x, y));
+				bool flag_sucess_inner = haar.pupil_rect_coarse_.contains(Point2f(x, y));
+				bool flag_sucess_outer = haar.outer_rect_coarse_.contains(Point2f(x, y));
 
 				//flag: 是否备选的rect内含有pupil
 				bool flag_sucess_candidates = false;
-				vector<Rect> rectlist = haar.inner_rectlist;
+				vector<Rect> rectlist = haar.inner_rectlist_;
 				for (int i = 0; i < rectlist.size(); i++)
 				{
 					if (rectlist[i].contains(Point2f(x, y)))
@@ -1123,13 +1123,13 @@ public:
 					}
 				}
 
-				Point2f center(haar.pupil_rect_.x + haar.pupil_rect_.width*1.0f / 2,
-					haar.pupil_rect_.y + haar.pupil_rect_.height*1.0f / 2);
+				Point2f center(haar.pupil_rect_coarse_.x + haar.pupil_rect_coarse_.width*1.0f / 2,
+					haar.pupil_rect_coarse_.y + haar.pupil_rect_coarse_.height*1.0f / 2);
 				double error = norm(center - Point2f(x, y));
 
-				bool flag_sucess_inner2 = haar.pupil_rect2_.contains(Point2f(x, y));
-				Point2f center2(haar.pupil_rect2_.x + haar.pupil_rect2_.width*1.0f / 2,
-					haar.pupil_rect2_.y + haar.pupil_rect2_.height*1.0f / 2);
+				bool flag_sucess_inner2 = haar.pupil_rect_fine_.contains(Point2f(x, y));
+				Point2f center2(haar.pupil_rect_fine_.x + haar.pupil_rect_fine_.width*1.0f / 2,
+					haar.pupil_rect_fine_.y + haar.pupil_rect_fine_.height*1.0f / 2);
 				double error2 = norm(center2 - Point2f(x, y));
 
 
@@ -1220,7 +1220,7 @@ public:
 				{
 					fout << flag_sucess_inner << "	" << flag_sucess_outer << "	"
 						<< rectlist.size() << "	" << flag_sucess_candidates << "	"
-						<< error << "	" << haar.max_response_ << "	"
+						<< error << "	" << haar.max_response_coarse_ << "	"
 						<< haar.mu_inner_ << "	" << haar.mu_outer_ << "	"
 						//以下是detectToFine的结果
 						<< flag_sucess_inner2 << "	" << error2 << "	"

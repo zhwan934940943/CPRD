@@ -44,30 +44,36 @@ namespace myColor
 	const Scalar blue = Scalar(255, 0, 0);
 };
 
+enum HaarShape {OUTER_SQUARE, OUTER_HORIZONTAL}; // outer rectangle shape
+
+
 class HaarParams
 {
 public:
-	HaarParams() :width_min(0), width_max(0), //width_down_min(32), width_down_max(120),
-		wh_step(4), xy_step(4), ratio(1.42), roi(Rect(0, 0, 0, 0)),
-		init_rect(Rect(0, 0, 0, 0)), initRectFlag(false), squareHaarFlag(true), mu_inner(50), mu_outer(200) {};
+	HaarParams() : initRectFlag(false), squareHaarFlag(true),
+		outer_ratio(1.42), kf(1),
+		width_min(31), width_max(120), wh_step(4), xy_step(4), roi(Rect(0, 0, 0, 0)), 
+		init_rect(Rect(0, 0, 0, 0)), mu_inner(50), mu_outer(200) 
+	{};
+
+	HaarShape outer_shape;
+	bool squareHaarFlag;
+	double outer_ratio; // outer_rect ratio
+	double kf;
+
 
 	// width: --> pupil_rect
 	int width_min; //默认不使用原始分辨率的width
 	int width_max;
-	//int width_down_min; //降采样downsample之后的w范围
-	//int width_down_max;
 	int wh_step; //wh的间隔步长
-	int xy_step; //xy的间隔步长
-	double ratio; // outer_rect ratio
-	Rect roi; //inner rect 的范围，即不能超出该范围，显然(x,y)搜索范围要考虑width
-	Rect init_rect; //init rect的范围
-	bool initRectFlag;
-	bool squareHaarFlag;
 
+	int xy_step; //xy的间隔步长
+	Rect roi; //inner rect 的范围，即不能超出该范围，显然(x,y)搜索范围要考虑width
+
+	bool initRectFlag;
+	Rect init_rect; //init rect的范围
 	double mu_inner;
 	double mu_outer;
-	double kf;
-
 };
 
 
@@ -79,8 +85,8 @@ public:
 class PupilDetectorHaar
 {
 public:
-	PupilDetectorHaar() :pupil_rect_(Rect()), outer_rect_(Rect()),
-		max_response_(-255), iterate_count(0) {};
+	PupilDetectorHaar() :pupil_rect_coarse_(Rect()), outer_rect_coarse_(Rect()),
+		max_response_coarse_(-255), iterate_count_(0) {};
 
 	PupilDetectorHaar(const Mat &imgGray, const HaarParams& params) : PupilDetectorHaar()
 	{
@@ -90,27 +96,30 @@ public:
 	void detect(const Mat &img_gray, const HaarParams& params);
 	void detectIris(const Mat &img_gray, const HaarParams& params);
 
+	void initialSearchRange(const Mat& img_down);
+	void coarseDetection(const Mat& img_down);
+
 
 	/** 在outer_rect内部进一步寻找更优的pupil_rect
 	*/
 	void detectToFine()
 	{
-		inner_bII0 = getBlockIntegral(integral_img, pupil_rect_);
+		inner_bII0 = getBlockIntegral(integral_img, pupil_rect_coarse_);
 
 		//用于限定精细Rect的范围
 		double rangeRatio = 2.2;
 		double outInlierRatio = 2;//1.41似乎太小
 		int xystep = 4;
 
-		Rect xyrange_rect = rectScale(pupil_rect_, rangeRatio)&Rect(0, 0, integral_img.cols, integral_img.rows);
+		Rect xyrange_rect = rectScale(pupil_rect_coarse_, rangeRatio)&Rect(0, 0, integral_img.cols, integral_img.rows);
 		int Wm = xyrange_rect.width;
 		int Hm = xyrange_rect.height;
 		int Xm = xyrange_rect.x;
 		int Ym = xyrange_rect.y;
 
-		int wmin = max(31, pupil_rect_.width / 2);
-		int wmax = rangeRatio * pupil_rect_.width;
-		max_response2_ = -10000;
+		int wmin = max(31, pupil_rect_coarse_.width / 2);
+		int wmax = rangeRatio * pupil_rect_coarse_.width;
+		max_response_fine_ = -10000;
 		for (int w = wmin; w <= wmax; w += xystep)
 		{
 			int hmin = max(31, w / 2);
@@ -126,29 +135,30 @@ public:
 					{
 						Rect pupil_rect0(x, y, w, h);
 						Rect outer_rect0 = Rect(x - (outInlierRatio - 1)*w / 2, y - (outInlierRatio - 1)*h / 2, \
-							w*outInlierRatio, h*outInlierRatio)&outer_rect_;
+							w*outInlierRatio, h*outInlierRatio)&outer_rect_coarse_;
 						double mu_inner, mu_outer;
 						auto f = getResponseValue(integral_img, pupil_rect0, outer_rect0, mu_inner, mu_outer, 0);
 						//采用原始的response好像不合适
-						if (max_response2_ < f)
+						if (max_response_fine_ < f)
 						{
-							max_response2_ = f;
-							pupil_rect2_ = pupil_rect0;
-							outer_rect2_ = outer_rect0;
+							max_response_fine_ = f;
+							pupil_rect_fine_ = pupil_rect0;
+							outer_rect_fine_ = outer_rect0;
 						}
 					}//end for x
 			}//end for h
 		}//end for w
 	}
 
-	//基于Haar检测的瞳孔区域是粗糙的，是正方形，没有考虑长方形的情况，
-	//而且检测的结果容易受到瞳孔上光斑的影响
-	//结论：2020.5.3
-	//当图像质量差，比如inner outer对比度低，很难阈值处理提升效果
-	void detectToFine2(const Mat& img_down)
+
+	/*
+	结论：2020.5.3
+	当图像质量差，比如inner outer对比度低，很难阈值处理提升效果
+	*/
+	void fineDetection(const Mat& img_down)
 	{
-		double rangeRatio = 1.42;//ratio=2有点过大了
-		Rect base_rect = rectScale(pupil_rect_, rangeRatio)&Rect(0, 0, img_down.cols, img_down.rows);
+		double rangeRatio = 1.42;//ratio=2 is too large
+		Rect base_rect = rectScale(pupil_rect_coarse_, rangeRatio)&Rect(0, 0, img_down.cols, img_down.rows);
 		Mat img = img_down(base_rect);
 		Mat img_bw;
 
@@ -174,7 +184,7 @@ public:
 		}
 		if (stats_t.rows == 1)
 		{
-			pupil_rect2_ = Rect(stats_t.at<int>(0, 0) + base_rect.x,
+			pupil_rect_fine_ = Rect(stats_t.at<int>(0, 0) + base_rect.x,
 				stats_t.at<int>(0, 1) + base_rect.y,
 				stats_t.at<int>(0, 2), stats_t.at<int>(0, 3));
 			return;
@@ -228,7 +238,7 @@ public:
 		{
 			int index = labels.at<int>(img_bw.cols / 2, img_bw.rows / 2);
 			if (index && area.at<int>(index) > 0.04*img_bw.cols*img_bw.rows)
-				pupil_rect2_ = Rect(stats.at<int>(index, 0) + base_rect.x,
+				pupil_rect_fine_ = Rect(stats.at<int>(index, 0) + base_rect.x,
 					stats.at<int>(index, 1) + base_rect.y,
 					stats.at<int>(index, 2), stats.at<int>(index, 3));
 			else
@@ -242,15 +252,15 @@ public:
 				int intensity1 = img.at<uchar>(centroid1);
 				int intensity2 = img.at<uchar>(centroid2);
 				if (abs(intensity1 - intensity2) < 5)
-					pupil_rect2_ = rect1 | rect2;
+					pupil_rect_fine_ = rect1 | rect2;
 				else
 				{
 					if (intensity1 > intensity2)
-						pupil_rect2_ = rect2;
+						pupil_rect_fine_ = rect2;
 					else
-						pupil_rect2_ = rect1;
+						pupil_rect_fine_ = rect1;
 				}
-				pupil_rect2_ = pupil_rect2_ + base_rect.tl();
+				pupil_rect_fine_ = pupil_rect_fine_ + base_rect.tl();
 			}
 		}
 	}
@@ -291,25 +301,58 @@ public:
 	// overload
 	void draw(Mat& img_BGR, int drawflag = 1)
 	{
-		draw(img_BGR, pupil_rect_, outer_rect_, max_response_, RED);
+		draw(img_BGR, pupil_rect_coarse_, outer_rect_coarse_, max_response_coarse_, RED);
 		if (drawflag)
-			draw(img_BGR, pupil_rect2_, outer_rect2_, max_response2_, BLUE);
+			draw(img_BGR, pupil_rect_fine_, outer_rect_fine_, max_response_fine_, BLUE);
 	}
 
-	Rect pupil_rect_;
-	Rect outer_rect_;
-	Rect pupil_rect2_;
-	Rect outer_rect2_;
-	double max_response_;
-	double max_response2_;
-	size_t iterate_count;
-	double kf;//响应函数的权重，inner部分的
-	int whstep;
-	int xystep;
 
-	double mu_outer_;
-	double mu_inner_;
-	vector<Rect> inner_rectlist;
+
+	static void filterLight(const Mat& img_gray, Mat& img_blur, int tau)
+	{
+		//GaussianBlur(img_gray, img_blur, Size(5, 5), 0, 0);
+
+		//mean shift 可以将边缘变窄
+		//Mat temp;
+		//cvtColor(img_blur, temp, CV_GRAY2BGR);
+		////measureTime([&]() {bilateralFilter(img_blur, temp, 5, 100, 1, 4); }, "bilateral\t");
+		//measureTime([&]() {pyrMeanShiftFiltering(temp, temp, 20, 20, 2); }, "mean shift\t");
+		//cvtColor(temp, img_blur, CV_BGR2GRAY); 
+
+		//close操作可以弱化睫毛，效果很好
+		//open操作可以弱化小亮斑
+		//Mat kernel = getStructuringElement(MORPH_ELLIPSE, Size(7, 7));
+		//Mat dst;
+		//morphologyEx(img_blur, dst, MORPH_CLOSE, kernel, Point(-1, -1), 1);
+		//morphologyEx(dst, dst, MORPH_OPEN, kernel, Point(-1, -1), 1);
+		//Mat tmp = dst - img_gray;
+		//img_blur = dst;
+
+		//光过强抑制
+		int col = img_gray.cols;
+		int row = img_gray.rows;
+		for (int i = 0; i < col; i++)
+			for (int j = 0; j < row; j++)
+			{
+				if (img_gray.at<uchar>(j, i) > tau)
+					img_blur.at<uchar>(j, i) = tau;
+				else
+					img_blur.at<uchar>(j, i) = img_gray.at<uchar>(j, i);
+			}
+
+		//close操作可以弱化睫毛，效果很好
+		//open操作可以弱化小亮斑
+		/*Mat kernel = getStructuringElement(MORPH_ELLIPSE, Size(7, 7));
+		Mat dst;
+		morphologyEx(img_blur, dst, MORPH_CLOSE, kernel, Point(-1, -1), 1);
+		morphologyEx(dst, dst, MORPH_OPEN, kernel, Point(-1, -1), 1);
+		Mat tmp = dst - img_gray;
+		img_blur = dst;*/
+	}
+
+
+
+	
 
 private:
 
@@ -319,18 +362,18 @@ private:
 	//void getIntegralImg(const Mat& imgGray, Mat& integral_img);
 
 	double getResponseMap(const Mat &integral_img, double ratio, \
-		int width, int height, Rect roi, Rect& pupil_rect, Rect& outer_rect,
-		double& mu_inner, double& mu_outer, bool squareHaarFlag);
+		int width, int height, Rect roi, bool squareHaarFlag,
+		Rect& pupil_rect, Rect& outer_rect,double& mu_inner, double& mu_outer);
 
-	/* Computes response value with some Haar kernel.
+	/* Computes response value with a Haar kernel.
 
 @param inner_rect is inputoutput.
 @param outer_rect.
 */
 	double getResponseValue(const Mat& integral_img, Rect& inner_rect,
-		Rect& outer_rect, double& mu_inner, double& mu_outer, int responseFunc = 1)
+		Rect& outer_rect, double& mu_inner, double& mu_outer)
 	{
-		iterate_count += 1;
+		iterate_count_ += 1;
 		// Filters rect, i.e., intersect two Rect.
 		Rect boundary(0, 0, integral_img.cols - 1, integral_img.rows - 1);
 		outer_rect &= boundary;
@@ -340,15 +383,11 @@ private:
 		auto outer_bII = getBlockIntegral(integral_img, outer_rect);
 		auto inner_bII = getBlockIntegral(integral_img, inner_rect);
 
-		//外部和内部rect的均值差. integral_image采用int和double计算差不多.
 		double f;
 		mu_outer = 1.0*(outer_bII - inner_bII) / (outer_rect.area() - inner_rect.area());
 		mu_inner = 1.0*inner_bII / inner_rect.area();
-		if (responseFunc)
-			f = mu_outer - kf * mu_inner;
-		else
-			f = mu_outer - 2.0*mu_inner + 10.0*log2(inner_rect.area());
-		//inner_bII0 / inner_rect.area() 效果不好
+
+		f = mu_outer - kf_ * mu_inner;
 
 		return f;
 	}
@@ -356,7 +395,7 @@ private:
 	double getResponseValue2(const Mat& integral_img, \
 		Rect& inner_rect, Rect& outer_rect, int responseFunc = 1)
 	{
-		iterate_count += 1;
+		iterate_count_ += 1;
 		// Filters rect, i.e., intersect two Rect.
 		Rect boundary(0, 0, integral_img.cols - 1, integral_img.rows - 1);
 		outer_rect &= boundary;
@@ -465,49 +504,44 @@ private:
 	}
 
 public:
-static void filterLight(const Mat& img_gray, Mat& img_blur, int tau)
-	{
-		//GaussianBlur(img_gray, img_blur, Size(5, 5), 0, 0);
+	//--------------------input parameters--------------------
+	//Haar parameters
+	double ratio_outer_ = 1.42;
+	double kf_ = 1.4;//响应函数的权重，inner部分的
+	bool useSquareHaar_ = false;//默认使用horizontal Haar outer
 
-		//mean shift 可以将边缘变窄
-		//Mat temp;
-		//cvtColor(img_blur, temp, CV_GRAY2BGR);
-		////measureTime([&]() {bilateralFilter(img_blur, temp, 5, 100, 1, 4); }, "bilateral\t");
-		//measureTime([&]() {pyrMeanShiftFiltering(temp, temp, 20, 20, 2); }, "mean shift\t");
-		//cvtColor(temp, img_blur, CV_BGR2GRAY); 
+	//optimization parameters
+	int width_min_ = 31; //img.width/10
+	int width_max_ = 240 / 2;//img.height/2
+	int whstep_ = 4;
+	int xystep_ = 4;
 
-		//close操作可以弱化睫毛，效果很好
-		//open操作可以弱化小亮斑
-		//Mat kernel = getStructuringElement(MORPH_ELLIPSE, Size(7, 7));
-		//Mat dst;
-		//morphologyEx(img_blur, dst, MORPH_CLOSE, kernel, Point(-1, -1), 1);
-		//morphologyEx(dst, dst, MORPH_OPEN, kernel, Point(-1, -1), 1);
-		//Mat tmp = dst - img_gray;
-		//img_blur = dst;
-
-		//光过强抑制
-		int col = img_gray.cols;
-		int row = img_gray.rows;
-		for (int i = 0; i < col; i++)
-			for (int j = 0; j < row; j++)
-			{
-				if (img_gray.at<uchar>(j, i) > tau)
-					img_blur.at<uchar>(j, i) = tau;
-				else
-					img_blur.at<uchar>(j, i) = img_gray.at<uchar>(j, i);
-			}
-
-		//close操作可以弱化睫毛，效果很好
-		//open操作可以弱化小亮斑
-		/*Mat kernel = getStructuringElement(MORPH_ELLIPSE, Size(7, 7));
-		Mat dst;
-		morphologyEx(img_blur, dst, MORPH_CLOSE, kernel, Point(-1, -1), 1);
-		morphologyEx(dst, dst, MORPH_OPEN, kernel, Point(-1, -1), 1);
-		Mat tmp = dst - img_gray;
-		img_blur = dst;*/
-	}
+	//other parameters
+	Size target_resolution_ = Size(320, 240);
+	Rect roi_;
+	
+	bool useInitRect_ = false;
+	Rect init_rect_ = Rect(0, 0, 0, 0); // based on original image resolution, not downsample
 
 
+	//--------------------output--------------------
+	Rect pupil_rect_coarse_; //coarse
+	Rect outer_rect_coarse_;
+	double max_response_coarse_ = -255;
+	Rect pupil_rect_fine_; //refine
+	Rect outer_rect_fine_;
+	double max_response_fine_;
+
+	size_t iterate_count_;
+
+	double mu_outer_;
+	double mu_inner_;
+	vector<Rect> inner_rectlist_;
+
+private:
+	double ratio_downsample_;
+	Rect imgboundary_;
+	Rect init_rect_down;
 
 	Mat integral_img;// size: (M+1)*(N+1)
 	int inner_bII0;
