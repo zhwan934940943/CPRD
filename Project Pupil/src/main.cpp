@@ -4,7 +4,7 @@
 
 #include <my_lib.h>
 
-#include "pupil_extraction.h"
+#include "m_pupil_extraction.h"
 #include "dataset_test.h"
 //#include "PuRe/PuRe.h"
 //#include <QDebug>
@@ -21,7 +21,7 @@ void imgTest()
 	string dirname = "samples/";
 	string filename = "imagelist.xml";
 	vector<string> imagelist;
-	readStringList(dirname + filename, imagelist);
+	readStringList_xml(dirname + filename, imagelist);
 
 	for (int i = 0; i < imagelist.size(); ++i)//imagelist.size()
 	{
@@ -57,17 +57,10 @@ void imgTest2()
 }
 
 
-void test()
-{
-	//Rect²¢¼¯²âÊÔ
-	//Rect a(0, 0, 10, 10);
-	//Rect b(10, 10, 10, 10);
-	//Rect c = a | b;
-}
 
 int main()
 {
-	imgTest();
+	//imgTest();
 	DatasetTest test;
 	//test.SwirskiTest_Haar();
 	//test.LPWTest_Haar_iris();

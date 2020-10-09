@@ -655,7 +655,7 @@ public:
 		//for (int i = 62; i != 64; i++)//caselist.size()
 		{
 			string casename = caselist[i];
-			cout << "casename = " << casename << endl;
+			cout << "casename" << casename << endl;
 			VideoCapture cap(dataset_dir + casename + ".avi");
 
 			//groundtruth file. e.g., 1-1.txt
@@ -676,10 +676,10 @@ public:
 			haar.xystep_ = 2;//2,3,4
 			haar.whstep_ = 4;
 
-			cout << "useInitRect = " << haar.useInitRect_ << "	"
-				<< "useSquareHaar = " << haar.useSquareHaar_ << "\n"
-				<< "r = " << haar.ratio_outer_ << "	" << "kf = " << haar.kf_ << "	"
-				<< "wh_step = " << haar.whstep_ << "	" << "xy_step = " << haar.xystep_ << "\n";
+			cout << "useInitRect=" << haar.useInitRect_ << "	"
+				<< "useSquareHaa=" << haar.useSquareHaar_ << "\n"
+				<< "r=" << haar.ratio_outer_ << "	" << "kf=" << haar.kf_ << "	"
+				<< "wh_step=" << haar.whstep_ << "	" << "xy_step=" << haar.xystep_ << "\n";
 
 			
 			if (haar.useInitRect_)

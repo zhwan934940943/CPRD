@@ -15,27 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\PupilTracker.cpp">
-      <Filter>头文件</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\cvx.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\utils.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PuRe\ElSe.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PuRe\ExCuSe.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PuRe\PupilDetectionMethod.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PuRe\PuRe.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\m_PupilDetectorHaar.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -54,45 +33,21 @@
     <ClCompile Include="src\PuRe\PuRe.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\Swirski2012\cvx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Swirski2012\PupilTracker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Swirski2012\utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\PupilTracker.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\ConicSection.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\cvx.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\high_resolution_timer.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\timer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\KernelData\0 code lib\VS_work\pupiltracker-master\lib\pupiltracker\utils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PuRe\ElSe.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PuRe\ExCuSe.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PuRe\PupilDetectionMethod.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PuRe\PuRe.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\dataset_test.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\m_PupilDetectorHaar.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\pupil_extraction.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\PuRe\ElSe.h">
@@ -105,6 +60,33 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\PuRe\PuRe.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Swirski2012\ConicSection.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Swirski2012\cvx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Swirski2012\high_resolution_timer.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Swirski2012\PupilTracker.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Swirski2012\timer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Swirski2012\utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\m_pupil_extraction.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\deprecated.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

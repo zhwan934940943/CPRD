@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef PupilExtraction_H_
-#define PupilExtraction_H_
+#ifndef M_PupilExtraction_H_
+#define M_PupilExtraction_H_
 
 
 #include <QString>
@@ -38,20 +38,15 @@ public:
 		Mat img_gray, img_BGR;
 		img2GrayBGR(img_in, img_gray, img_BGR);
 
-
-		/*Mat img_blur;
-		measureTime([&]() {filterImg(img_gray, img_blur); }, "filter\t");
-		img_gray = img_blur;*/
-
 		section("1 detect pupil region");
-		//1.1 coarse region with Haar
 		PupilDetectorHaar haar;
 		measureTime([&]() {detectPupilRegion(img_gray, haar);
-		haar.draw(img_BGR, 0);
 		}, "haar\t");
 
-		Rect pupil_rect = rectScale(haar.outer_rect_fine_, 1)
-			&haar.outer_rect_coarse_; //Rect(0, 0, img_gray.cols, img_gray.rows);
+		haar.drawCoarse(img_BGR);
+		rectangle(img_BGR, haar.pupil_rect_fine_, BLUE, 1, 8);
+
+		Rect pupil_rect = haar.pupil_rect_fine_;
 		Mat img_pupil = Mat(img_gray, pupil_rect);
 
 		//1.2 smoothing
@@ -71,8 +66,8 @@ public:
 
 		section("2 detect pupil contour with Canny");
 		Mat edges, edges_;
-		Rect inlinerRect = haar.pupil_rect_fine_ - haar.outer_rect_fine_.tl();
-		Rect inlinerRect2 = (haar.pupil_rect_fine_&haar.pupil_rect_coarse_) - haar.outer_rect_fine_.tl();
+		Rect inlinerRect = haar.pupil_rect_fine_ - haar.pupil_rect_fine_.tl();
+		Rect inlinerRect2 = (haar.pupil_rect_fine_&haar.pupil_rect_coarse_) - haar.pupil_rect_fine_.tl();
 
 		measureTime([&]() {detectPupilContour(img_pupil, edges, inlinerRect);
 		edges_ = edges & img_bw;
@@ -132,25 +127,12 @@ public:
 
 	void detectPupilRegion(const Mat& img_gray, PupilDetectorHaar& haar)
 	{
-		HaarParams params;
 		haar.ratio_outer_ = 2;
 		haar.kf_ = 1;
 		haar.useSquareHaar_ = false;
 		haar.useInitRect_ = false;
 
-		haar.detect(img_gray, params);
-
-
-		//section("2.1 show haar results");
-		//{
-		//	Mat img_haar;
-		//	cvtColor(img_gray, img_haar, CV_GRAY2BGR);
-		//	haar.draw(img_haar);
-		//	namedWindow("Eye with haar features");
-		//	moveWindow("Eye with haar features", 0, 0);
-		//	imshow("Eye with haar features", img_haar);
-		//	waitKey(30);
-		//}
+		haar.detect(img_gray);
 	}
 
 	void detectPupilMask(const Mat& img_gray, Mat& img_bw, int illuminationFlag = 0)
