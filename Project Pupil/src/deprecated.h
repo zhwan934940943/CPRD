@@ -700,3 +700,80 @@ void LPWTest_Haar()
 	}//end for
 
 }
+
+
+Rect boundary(0, 0, img_gray.cols, img_gray.rows);
+double validRatio = 1.2; //策略：1.42
+Rect validRect = rectScale(pupil_rect_fine_, validRatio)&boundary;
+Mat img_pupil = img_gray(validRect);
+GaussianBlur(img_pupil, img_pupil, Size(5, 5), 0, 0);
+
+
+Point2f center_fitting;
+
+cv::RotatedRect ellipse_rect;
+//if (haar.mu_outer_ - haar.mu_inner_ < 10) //策略：0,10,20
+//	center_fitting = center_fine;
+//else
+{
+	//edges提取
+	//自适应阈值canny method
+	PupilExtractionMethod detector;
+	/*Mat edges;
+	Rect inlinerRect = haar.pupil_rect2_ - haar.pupil_rect2_.tl();
+	detector.detectPupilContour(img_pupil, edges, inlinerRect);*/
+
+	double tau1 = 1 - 20.0 / img_pupil.cols;//策略：10，20
+	Mat edges = canny_pure(img_pupil, false, false, 64 * 2, tau1, 0.5);
+
+	Mat edges_filter;
+	{
+		int tau;
+		//if (haar.mu_outer_ - haar.mu_inner_ > 30)
+		//	tau = params.mu_outer;
+		//else
+		tau = haar.mu_inner_ + 100;
+		//光强抑制	
+		//PupilDetectorHaar::filterLight(img_t, img_t, tau);
+
+		//1 利用光强过强抑制部分edges
+		Mat img_bw;
+		threshold(img_pupil, img_bw, tau, 255, cv::THRESH_BINARY);
+		Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, Size(5, 5));
+		dilate(img_bw, img_bw, kernel, Point(-1, -1), 1);
+		edges_filter = edges & ~img_bw;
+
+		//2 利用curves size过滤较小的片段
+		edgesFilter(edges_filter);
+	}
+	imshow("edges", edges);
+	imshow("edgesF", edges_filter);
+
+	//int K;//iterations
+	//{
+	//	double p = 0.99;	// success rate 0.99
+	//	double e = 0.7;		// outlier ratio, 0.7效果很好，但是时间长
+	//	K = cvRound(log(1 - p) / log(1 - pow(1 - e, 5)));
+	//}
+	//RotatedRect ellipse_rect;
+	//detector.fitPupilEllipse(edges_filter, ellipse_rect, K);
+
+
+	//利用RANSAC
+	detector.fitPupilEllipseSwirski(img_pupil, edges_filter, ellipse_rect);
+	ellipse_rect.center = ellipse_rect.center + Point2f(validRect.tl());
+	if (haar.pupil_rect_fine_.contains(ellipse_rect.center) && (ellipse_rect.size.width > 0))
+	{
+		center_fitting = ellipse_rect.center;
+		drawMarker(img_coarse, center_fitting, Scalar(0, 0, 255));
+		ellipse(img_coarse, ellipse_rect, RED);
+	}
+	else
+		center_fitting = center_fine;
+
+
+	//	//利用PuRe进一步提取
+	//	//PuRe detectorPuRe;
+	//	//Pupil pupil = detectorPuRe.run(img_pupil);
+	//	//pupil.center = pupil.center + Point2f(validRect.tl());
+}//end if

@@ -29,6 +29,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <my_lib.h>
+#include "utils.h"
 
 
 //#define HAAR_TEST
@@ -42,7 +43,7 @@
 using namespace std;
 using cv::Mat;
 using cv::Mat_;
-using cv::Point; 
+using cv::Point;
 using cv::Scalar;
 
 namespace myColor
@@ -57,8 +58,8 @@ class HaarParams
 public:
 	HaarParams() : initRectFlag(false), squareHaarFlag(true),
 		outer_ratio(1.42), kf(1),
-		width_min(31), width_max(120), wh_step(4), xy_step(4), roi(Rect(0, 0, 0, 0)), 
-		init_rect(Rect(0, 0, 0, 0)), mu_inner(50), mu_outer(200) 
+		width_min(31), width_max(120), wh_step(4), xy_step(4), roi(Rect(0, 0, 0, 0)),
+		init_rect(Rect(0, 0, 0, 0)), mu_inner(50), mu_outer(200)
 	{};
 
 	bool squareHaarFlag;
@@ -75,7 +76,7 @@ public:
 	Rect roi; //inner rect 的范围，即不能超出该范围，显然(x,y)搜索范围要考虑width
 
 	bool initRectFlag;
-	Rect init_rect; 
+	Rect init_rect;
 	double mu_inner;
 	double mu_outer;
 };
@@ -100,6 +101,7 @@ public:
 	{
 		//guarantee the img_gray is UIN8 [0,255], not float [0,1].
 		CV_Assert(img_gray.depth() == cv::DataType<uchar>::depth);
+		frameNum_ += 1;
 
 		//-------------------------- 1 Preprocessing --------------------------
 		//1.1 downsampling
@@ -127,7 +129,13 @@ public:
 		}
 
 		//-------------------------- 2 Coarse Detection --------------------------
-		coarseDetection(img_down, pupil_rect_coarse_, outer_rect_coarse_, max_response_coarse_);
+		coarseDetection(img_down, pupil_rect_coarse_, outer_rect_coarse_,
+			max_response_coarse_, mu_inner_, mu_outer_);
+		if (useInitRect_ && frameNum_ == 1)
+		{
+			mu_inner0_ = mu_inner_;
+			mu_outer0_ = mu_outer_;
+		}
 
 
 		//-------------------------- 3 Fine Detection --------------------------
@@ -153,13 +161,18 @@ public:
 		pupil_rect_coarse_ = rectScale(pupil_rect_coarse_, ratio_downsample_, false);
 		outer_rect_coarse_ = rectScale(outer_rect_coarse_, ratio_downsample_, false);
 		pupil_rect_fine_ = rectScale(pupil_rect_fine_, ratio_downsample_, false);
+
+		center_coarse_ = Point2f(pupil_rect_coarse_.x + pupil_rect_coarse_.width*1.0f / 2,
+			pupil_rect_coarse_.y + pupil_rect_coarse_.height*1.0f / 2);
+		center_fine_ = Point2f(pupil_rect_fine_.x + pupil_rect_fine_.width*1.0f / 2,
+			pupil_rect_fine_.y + pupil_rect_fine_.height*1.0f / 2);
 	}
 
 
 
-	
-	void coarseDetection(const Mat& img_down, Rect& pupil_rect_coarse, 
-		Rect& outer_rect_coarse, double& max_response_coarse);
+
+	void coarseDetection(const Mat& img_down, Rect& pupil_rect_coarse,
+		Rect& outer_rect_coarse, double& max_response_coarse, double mu_inner, double mu_outer);
 
 
 	void fineDetection(const Mat& img_down, const Rect& pupil_rect_coarse, Rect& pupil_rect_fine);
@@ -216,6 +229,94 @@ public:
 
 
 
+
+
+
+	//not in down sample scale, but in original scale.
+	bool extractEllipse(const Mat& img_gray, cv::RotatedRect& ellipse_rect, Point2f& center_fitting)
+	{
+		center_fitting = center_fine_; //[default]
+		if (mu_outer_ - mu_inner_ < 10) //others：0,10,20
+			return false;
+
+
+		Rect boundary(0, 0, img_gray.cols, img_gray.rows);
+		double validRatio = 1.2; //策略：1.42
+		Rect validRect = rectScale(pupil_rect_fine_, validRatio)&boundary;
+		Mat img_pupil = img_gray(validRect);
+		GaussianBlur(img_pupil, img_pupil, Size(5, 5), 0, 0);
+
+		Mat edges_filter;
+		detectEdges(img_pupil,edges_filter);
+
+
+		//Fit ellipse by RANSAC
+		//int K;//iterations
+		//{
+		//	double p = 0.99;	// success rate 0.99
+		//	double e = 0.7;		// outlier ratio, 0.7效果很好，但是时间长
+		//	K = cvRound(log(1 - p) / log(1 - pow(1 - e, 5)));
+		//}
+		//RotatedRect ellipse_rect;
+		//detector.fitPupilEllipse(edges_filter, ellipse_rect, K);
+
+		
+		fitPupilEllipseSwirski(img_pupil, edges_filter, ellipse_rect);
+		ellipse_rect.center = ellipse_rect.center + Point2f(validRect.tl());
+
+		if (pupil_rect_fine_.contains(ellipse_rect.center) && (ellipse_rect.size.width > 0))
+		{
+			center_fitting = ellipse_rect.center;
+			return true;
+		}
+		else
+			return false;
+
+		//	//利用PuRe进一步提取
+		//	//PuRe detectorPuRe;
+		//	//Pupil pupil = detectorPuRe.run(img_pupil);
+		//	//pupil.center = pupil.center + Point2f(validRect.tl());
+	}
+
+
+	// Extracts edges by Canny.
+	void detectEdges(const Mat& img_pupil, Mat& edges_filter)
+	{
+		double tau1 = 1 - 20.0 / img_pupil.cols;//策略：10，20
+		Mat edges = canny_pure(img_pupil, false, false, 64 * 2, tau1, 0.5);
+
+		{
+			//1 suppression some edges by high intensity
+			int tau;
+			//if (haar.mu_outer_ - haar.mu_inner_ > 30)
+			//	tau = params.mu_outer;
+			//else
+			tau = mu_inner_ + 100;
+			//PupilDetectorHaar::filterLight(img_t, img_t, tau);
+
+			Mat img_bw;
+			threshold(img_pupil, img_bw, tau, 255, cv::THRESH_BINARY);
+			Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, Size(5, 5));
+			dilate(img_bw, img_bw, kernel, Point(-1, -1), 1);
+			edges_filter = edges & ~img_bw;
+
+			//2 filter edges by curves size
+			edgesFilter(edges_filter);
+		}
+		//imshow("edges", edges);
+		//imshow("edgesF", edges_filter);
+	}
+
+
+
+	
+
+
+
+
+
+
+
 private:
 	// initial the search ranges of w (width_min_, width_max_) and xy (roi_).
 	void initialSearchRange(const Mat& img_down);
@@ -253,12 +354,12 @@ private:
 	*/
 	double getResponseMap(const Mat &integral_img, \
 		int width, int height, double ratio, bool useSquareHaar, double kf, Rect roi, int xystep,
-		Rect& pupil_rect, Rect& outer_rect,double& mu_inner, double& mu_outer);
+		Rect& pupil_rect, Rect& outer_rect, double& mu_inner, double& mu_outer);
 
 	/* Computes response value with a Haar kernel.
 	@param inner_rect
 	*/
-	double getResponseValue(const Mat& integral_img, Rect& inner_rect,Rect& outer_rect, double kf, 
+	double getResponseValue(const Mat& integral_img, Rect& inner_rect, Rect& outer_rect, double kf,
 		double& mu_inner, double& mu_outer)
 	{
 		iterate_count_ += 1;
@@ -374,25 +475,28 @@ public:
 	int whstep_ = 4;
 	int xystep_ = 4;
 
-	//other parameters
-	Rect roi_;
-	double mu_inner_;//the current frame
-	double mu_outer_;
+	//dynamic parameters
+	int frameNum_ = 0;
+	Rect roi_; //process region (mask), can be used for future tracking.
+	double mu_inner_ = 50;//the current frame
+	double mu_outer_ = 200;
 
-	double mu_inner0_;//the first frame
-	double mu_outer0_;
+	// only used for high intensity suppression
+	double mu_inner0_ = 50;//the first frame
+	double mu_outer0_ = 200;
 
 	//--------------------output--------------------
 	Rect pupil_rect_coarse_; //coarse
 	Rect outer_rect_coarse_;
 	double max_response_coarse_ = -255;
+	vector<Rect> inner_rectlist_; //detected rect for each w
+	Point2f center_coarse_;
 
 	Rect pupil_rect_fine_; //refine
-
+	Point2f center_fine_;
 
 	size_t iterate_count_ = 0;
 
-	vector<Rect> inner_rectlist_;
 
 
 private:

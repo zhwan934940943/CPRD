@@ -538,326 +538,326 @@ public:
 
 
 
-	bool fitPupilEllipseSwirski(Mat& img_blur, Mat& edges, cv::RotatedRect& elPupil)
-	{
-		// initial params
-		//由于下面的椭圆拟合函数需要float类型，所以这里都为这种类型
-		vector<Point2f> edgePoints; //N x 2
-		{
-			for (int i = 0; i < edges.rows; i++)
-				for (int j = 0; j < edges.cols; j++)
-					if (edges.at<uchar>(i, j) > 0)
-					{
-						Point2f temp(j, i);
-						edgePoints.push_back(temp);
-					}
-		}
+	//bool fitPupilEllipseSwirski(Mat& img_blur, Mat& edges, cv::RotatedRect& elPupil)
+	//{
+	//	// initial params
+	//	//由于下面的椭圆拟合函数需要float类型，所以这里都为这种类型
+	//	vector<Point2f> edgePoints; //N x 2
+	//	{
+	//		for (int i = 0; i < edges.rows; i++)
+	//			for (int j = 0; j < edges.cols; j++)
+	//				if (edges.at<uchar>(i, j) > 0)
+	//				{
+	//					Point2f temp(j, i);
+	//					edgePoints.push_back(temp);
+	//				}
+	//	}
 
-		std::vector<cv::Point2f> inliers;
+	//	std::vector<cv::Point2f> inliers;
 
-		// Desired probability that only inliers are selected
-		const double p = 0.999;
-		// Probability that a point is an inlier
-		double w = 30.0 / 100.0;
-		// Number of points needed for a model
-		const int n = 5;
+	//	// Desired probability that only inliers are selected
+	//	const double p = 0.999;
+	//	// Probability that a point is an inlier
+	//	double w = 30.0 / 100.0;
+	//	// Number of points needed for a model
+	//	const int n = 5;
 
-		pupiltracker::TrackerParams params;
-		params.Radius_Min = 460 / 2 / 8;//460是图像像素宽度
-		params.Radius_Max = 460 / 2 / 3;
-		//为了适应我的方法，这里修改
-		float d = sqrt(pow(edges.rows, 2) + pow(edges.cols, 2));
-		params.Radius_Min = min(edges.rows, edges.cols) / 4; 
-		params.Radius_Max = d/2;
+	//	pupiltracker::TrackerParams params;
+	//	params.Radius_Min = 460 / 2 / 8;//460是图像像素宽度
+	//	params.Radius_Max = 460 / 2 / 3;
+	//	//为了适应我的方法，这里修改
+	//	float d = sqrt(pow(edges.rows, 2) + pow(edges.cols, 2));
+	//	params.Radius_Min = min(edges.rows, edges.cols) / 4; 
+	//	params.Radius_Max = d/2;
 
-		params.CannyBlur = 1;
-		params.CannyThreshold1 = 20;
-		params.CannyThreshold2 = 40;
-		params.StarburstPoints = 0;
+	//	params.CannyBlur = 1;
+	//	params.CannyThreshold1 = 20;
+	//	params.CannyThreshold2 = 40;
+	//	params.StarburstPoints = 0;
 
-		params.PercentageInliers = 30;
-		params.InlierIterations = 2;
-		params.ImageAwareSupport = true;
-		params.EarlyTerminationPercentage = 95;
-		params.EarlyRejection = true;
-		params.Seed = -1;
-
-
-		if (edgePoints.size() >= n) // Minimum points for ellipse
-		{
-			// RANSAC!!!
-
-			double wToN = std::pow(w, n);
-			int k = static_cast<int>(std::log(1 - p) / std::log(1 - wToN) + 2 * std::sqrt(1 - wToN) / wToN);
+	//	params.PercentageInliers = 30;
+	//	params.InlierIterations = 2;
+	//	params.ImageAwareSupport = true;
+	//	params.EarlyTerminationPercentage = 95;
+	//	params.EarlyRejection = true;
+	//	params.Seed = -1;
 
 
-			//size_t threshold_inlierCount = std::max<size_t>(n, static_cast<size_t>(out.edgePoints.size() * 0.7));
+	//	if (edgePoints.size() >= n) // Minimum points for ellipse
+	//	{
+	//		// RANSAC!!!
 
-			// Use TBB for RANSAC
-			struct EllipseRansac_out {
-				std::vector<cv::Point2f> bestInliers;
-				cv::RotatedRect bestEllipse;
-				double bestEllipseGoodness;
-				int earlyRejections;
-				bool earlyTermination;
-
-				EllipseRansac_out() : bestEllipseGoodness(-std::numeric_limits<double>::infinity()), earlyTermination(false), earlyRejections(0) {}
-			};
-
-			struct EllipseRansac {
-				const pupiltracker::TrackerParams& params;
-				const std::vector<cv::Point2f>& edgePoints;
-				int n;
-				const cv::Rect& bb;
-				const cv::Mat_<float>& mDX;
-				const cv::Mat_<float>& mDY;
-				int earlyRejections;
-				bool earlyTermination;
-
-				EllipseRansac_out out;
-
-				EllipseRansac(
-					const pupiltracker::TrackerParams& params,
-					const std::vector<cv::Point2f>& edgePoints,
-					int n,
-					const cv::Rect& bb,
-					const cv::Mat_<float>& mDX,
-					const cv::Mat_<float>& mDY)
-					: params(params), edgePoints(edgePoints), n(n), bb(bb), mDX(mDX), mDY(mDY), earlyTermination(false), earlyRejections(0)
-				{
-				}
-
-				EllipseRansac(EllipseRansac& other, tbb::split)
-					: params(other.params), edgePoints(other.edgePoints), n(other.n), bb(other.bb), mDX(other.mDX), mDY(other.mDY), earlyTermination(other.earlyTermination), earlyRejections(other.earlyRejections)
-				{
-					//std::cout << "Ransac split" << std::endl;
-				}
-
-				void operator()(const tbb::blocked_range<size_t>& r)
-				{
-					if (out.earlyTermination)
-						return;
-					//std::cout << "Ransac start (" << (r.end()-r.begin()) << " elements)" << std::endl;
-					for (size_t i = r.begin(); i != r.end(); ++i)
-					{
-						// Ransac Iteration
-						// ----------------
-						std::vector<cv::Point2f> sample;
-						if (params.Seed >= 0)
-							sample = pupiltracker::randomSubset(edgePoints, n, static_cast<unsigned int>(i + params.Seed));
-						else
-							sample = pupiltracker::randomSubset(edgePoints, n);
-
-						cv::RotatedRect ellipseSampleFit = fitEllipse(sample);
-						// Normalise ellipse to have width as the major axis.
-						if (ellipseSampleFit.size.height > ellipseSampleFit.size.width)
-						{
-							ellipseSampleFit.angle = std::fmod(ellipseSampleFit.angle + 90, 180);
-							std::swap(ellipseSampleFit.size.height, ellipseSampleFit.size.width);
-						}
-
-						cv::Size s = ellipseSampleFit.size;
-						// Discard useless ellipses early
-						if (!ellipseSampleFit.center.inside(bb)
-							|| s.height > params.Radius_Max * 2
-							|| s.width > params.Radius_Max * 2
-							|| s.height < params.Radius_Min * 2 && s.width < params.Radius_Min * 2
-							|| s.height > 4 * s.width
-							|| s.width > 4 * s.height
-							)
-						{
-							// Bad ellipse! Go to your room!
-							continue;
-						}
-
-						// Use conic section's algebraic distance as an error measure
-						pupiltracker::ConicSection conicSampleFit(ellipseSampleFit);
-
-						// Check if sample's gradients are correctly oriented
-						if (params.EarlyRejection)
-						{
-							bool gradientCorrect = true;
-							BOOST_FOREACH(const cv::Point2f& p, sample)
-							{
-								cv::Point2f grad = conicSampleFit.algebraicGradientDir(p);
-								float dx = mDX(cv::Point(p.x, p.y));
-								float dy = mDY(cv::Point(p.x, p.y));
-
-								float dotProd = dx * grad.x + dy * grad.y;
-
-								gradientCorrect &= dotProd > 0;
-							}
-							if (!gradientCorrect)
-							{
-								out.earlyRejections++;
-								continue;
-							}
-						}
-
-						// Assume that the sample is the only inliers
-
-						cv::RotatedRect ellipseInlierFit = ellipseSampleFit;
-						pupiltracker::ConicSection conicInlierFit = conicSampleFit;
-						std::vector<cv::Point2f> inliers, prevInliers;
-
-						// Iteratively find inliers, and re-fit the ellipse
-						for (int i = 0; i < params.InlierIterations; ++i)
-						{
-							// Get error scale for 1px out on the minor axis
-							cv::Point2f minorAxis(-std::sin(PI / 180.0*ellipseInlierFit.angle), std::cos(PI / 180.0*ellipseInlierFit.angle));
-							cv::Point2f minorAxisPlus1px = ellipseInlierFit.center + (ellipseInlierFit.size.height / 2 + 1)*minorAxis;
-							float errOf1px = conicInlierFit.distance(minorAxisPlus1px);
-							float errorScale = 1.0f / errOf1px;
-
-							// Find inliers
-							inliers.reserve(edgePoints.size());
-							const float MAX_ERR = 2;
-							BOOST_FOREACH(const cv::Point2f& p, edgePoints)
-							{
-								float err = errorScale * conicInlierFit.distance(p);
-
-								if (err*err < MAX_ERR*MAX_ERR)
-									inliers.push_back(p);
-							}
-
-							if (inliers.size() < n) {
-								inliers.clear();
-								continue;
-							}
-
-							// Refit ellipse to inliers
-							ellipseInlierFit = fitEllipse(inliers);
-							conicInlierFit = pupiltracker::ConicSection(ellipseInlierFit);
-
-							// Normalise ellipse to have width as the major axis.
-							if (ellipseInlierFit.size.height > ellipseInlierFit.size.width)
-							{
-								ellipseInlierFit.angle = std::fmod(ellipseInlierFit.angle + 90, 180);
-								std::swap(ellipseInlierFit.size.height, ellipseInlierFit.size.width);
-							}
-						}
-						if (inliers.empty())
-							continue;
-
-						// Discard useless ellipses again
-						s = ellipseInlierFit.size;
-						if (!ellipseInlierFit.center.inside(bb)
-							|| s.height > params.Radius_Max * 2
-							|| s.width > params.Radius_Max * 2
-							|| s.height < params.Radius_Min * 2 && s.width < params.Radius_Min * 2
-							|| s.height > 4 * s.width
-							|| s.width > 4 * s.height
-							)
-						{
-							// Bad ellipse! Go to your room!
-							continue;
-						}
-
-						// Calculate ellipse goodness
-						double ellipseGoodness = 0;
-						if (params.ImageAwareSupport)
-						{
-							BOOST_FOREACH(cv::Point2f& p, inliers)
-							{
-								cv::Point2f grad = conicInlierFit.algebraicGradientDir(p);
-								float dx = mDX(p);
-								float dy = mDY(p);
-
-								double edgeStrength = dx * grad.x + dy * grad.y;
-
-								ellipseGoodness += edgeStrength;
-							}
-						}
-						else
-						{
-							ellipseGoodness = inliers.size();
-						}
-
-						if (ellipseGoodness > out.bestEllipseGoodness)
-						{
-							std::swap(out.bestEllipseGoodness, ellipseGoodness);
-							std::swap(out.bestInliers, inliers);
-							std::swap(out.bestEllipse, ellipseInlierFit);
-
-							// Early termination, if 90% of points match
-							if (params.EarlyTerminationPercentage > 0 && out.bestInliers.size() > params.EarlyTerminationPercentage*edgePoints.size() / 100)
-							{
-								earlyTermination = true;
-								break;
-							}
-						}
-
-					}
-					//std::cout << "Ransac end" << std::endl;
-				}
-
-				void join(EllipseRansac& other)
-				{
-					//std::cout << "Ransac join" << std::endl;
-					if (other.out.bestEllipseGoodness > out.bestEllipseGoodness)
-					{
-						std::swap(out.bestEllipseGoodness, other.out.bestEllipseGoodness);
-						std::swap(out.bestInliers, other.out.bestInliers);
-						std::swap(out.bestEllipse, other.out.bestEllipse);
-					}
-					out.earlyRejections += other.out.earlyRejections;
-					earlyTermination |= other.earlyTermination;
-
-					out.earlyTermination = earlyTermination;
-				}
-			};
+	//		double wToN = std::pow(w, n);
+	//		int k = static_cast<int>(std::log(1 - p) / std::log(1 - wToN) + 2 * std::sqrt(1 - wToN) / wToN);
 
 
-			cv::Mat_<float> mPupilSobelX;
-			cv::Mat_<float> mPupilSobelY;
-			cv::Sobel(img_blur, mPupilSobelX, CV_32F, 1, 0, 3);
-			cv::Sobel(img_blur, mPupilSobelY, CV_32F, 0, 1, 3);
-			Rect bbPupil(0, 0, img_blur.cols, img_blur.rows);
-			EllipseRansac ransac(params, edgePoints, n, bbPupil, mPupilSobelX, mPupilSobelY);
-			try
-			{
-				tbb::parallel_reduce(tbb::blocked_range<size_t>(0, k, k / 8), ransac);
-			}
-			catch (std::exception& e)
-			{
-				const char* c = e.what();
-				std::cerr << e.what() << std::endl;
-			}
-			inliers = ransac.out.bestInliers;
+	//		//size_t threshold_inlierCount = std::max<size_t>(n, static_cast<size_t>(out.edgePoints.size() * 0.7));
+
+	//		// Use TBB for RANSAC
+	//		struct EllipseRansac_out {
+	//			std::vector<cv::Point2f> bestInliers;
+	//			cv::RotatedRect bestEllipse;
+	//			double bestEllipseGoodness;
+	//			int earlyRejections;
+	//			bool earlyTermination;
+
+	//			EllipseRansac_out() : bestEllipseGoodness(-std::numeric_limits<double>::infinity()), earlyTermination(false), earlyRejections(0) {}
+	//		};
+
+	//		struct EllipseRansac {
+	//			const pupiltracker::TrackerParams& params;
+	//			const std::vector<cv::Point2f>& edgePoints;
+	//			int n;
+	//			const cv::Rect& bb;
+	//			const cv::Mat_<float>& mDX;
+	//			const cv::Mat_<float>& mDY;
+	//			int earlyRejections;
+	//			bool earlyTermination;
+
+	//			EllipseRansac_out out;
+
+	//			EllipseRansac(
+	//				const pupiltracker::TrackerParams& params,
+	//				const std::vector<cv::Point2f>& edgePoints,
+	//				int n,
+	//				const cv::Rect& bb,
+	//				const cv::Mat_<float>& mDX,
+	//				const cv::Mat_<float>& mDY)
+	//				: params(params), edgePoints(edgePoints), n(n), bb(bb), mDX(mDX), mDY(mDY), earlyTermination(false), earlyRejections(0)
+	//			{
+	//			}
+
+	//			EllipseRansac(EllipseRansac& other, tbb::split)
+	//				: params(other.params), edgePoints(other.edgePoints), n(other.n), bb(other.bb), mDX(other.mDX), mDY(other.mDY), earlyTermination(other.earlyTermination), earlyRejections(other.earlyRejections)
+	//			{
+	//				//std::cout << "Ransac split" << std::endl;
+	//			}
+
+	//			void operator()(const tbb::blocked_range<size_t>& r)
+	//			{
+	//				if (out.earlyTermination)
+	//					return;
+	//				//std::cout << "Ransac start (" << (r.end()-r.begin()) << " elements)" << std::endl;
+	//				for (size_t i = r.begin(); i != r.end(); ++i)
+	//				{
+	//					// Ransac Iteration
+	//					// ----------------
+	//					std::vector<cv::Point2f> sample;
+	//					if (params.Seed >= 0)
+	//						sample = pupiltracker::randomSubset(edgePoints, n, static_cast<unsigned int>(i + params.Seed));
+	//					else
+	//						sample = pupiltracker::randomSubset(edgePoints, n);
+
+	//					cv::RotatedRect ellipseSampleFit = fitEllipse(sample);
+	//					// Normalise ellipse to have width as the major axis.
+	//					if (ellipseSampleFit.size.height > ellipseSampleFit.size.width)
+	//					{
+	//						ellipseSampleFit.angle = std::fmod(ellipseSampleFit.angle + 90, 180);
+	//						std::swap(ellipseSampleFit.size.height, ellipseSampleFit.size.width);
+	//					}
+
+	//					cv::Size s = ellipseSampleFit.size;
+	//					// Discard useless ellipses early
+	//					if (!ellipseSampleFit.center.inside(bb)
+	//						|| s.height > params.Radius_Max * 2
+	//						|| s.width > params.Radius_Max * 2
+	//						|| s.height < params.Radius_Min * 2 && s.width < params.Radius_Min * 2
+	//						|| s.height > 4 * s.width
+	//						|| s.width > 4 * s.height
+	//						)
+	//					{
+	//						// Bad ellipse! Go to your room!
+	//						continue;
+	//					}
+
+	//					// Use conic section's algebraic distance as an error measure
+	//					pupiltracker::ConicSection conicSampleFit(ellipseSampleFit);
+
+	//					// Check if sample's gradients are correctly oriented
+	//					if (params.EarlyRejection)
+	//					{
+	//						bool gradientCorrect = true;
+	//						BOOST_FOREACH(const cv::Point2f& p, sample)
+	//						{
+	//							cv::Point2f grad = conicSampleFit.algebraicGradientDir(p);
+	//							float dx = mDX(cv::Point(p.x, p.y));
+	//							float dy = mDY(cv::Point(p.x, p.y));
+
+	//							float dotProd = dx * grad.x + dy * grad.y;
+
+	//							gradientCorrect &= dotProd > 0;
+	//						}
+	//						if (!gradientCorrect)
+	//						{
+	//							out.earlyRejections++;
+	//							continue;
+	//						}
+	//					}
+
+	//					// Assume that the sample is the only inliers
+
+	//					cv::RotatedRect ellipseInlierFit = ellipseSampleFit;
+	//					pupiltracker::ConicSection conicInlierFit = conicSampleFit;
+	//					std::vector<cv::Point2f> inliers, prevInliers;
+
+	//					// Iteratively find inliers, and re-fit the ellipse
+	//					for (int i = 0; i < params.InlierIterations; ++i)
+	//					{
+	//						// Get error scale for 1px out on the minor axis
+	//						cv::Point2f minorAxis(-std::sin(PI / 180.0*ellipseInlierFit.angle), std::cos(PI / 180.0*ellipseInlierFit.angle));
+	//						cv::Point2f minorAxisPlus1px = ellipseInlierFit.center + (ellipseInlierFit.size.height / 2 + 1)*minorAxis;
+	//						float errOf1px = conicInlierFit.distance(minorAxisPlus1px);
+	//						float errorScale = 1.0f / errOf1px;
+
+	//						// Find inliers
+	//						inliers.reserve(edgePoints.size());
+	//						const float MAX_ERR = 2;
+	//						BOOST_FOREACH(const cv::Point2f& p, edgePoints)
+	//						{
+	//							float err = errorScale * conicInlierFit.distance(p);
+
+	//							if (err*err < MAX_ERR*MAX_ERR)
+	//								inliers.push_back(p);
+	//						}
+
+	//						if (inliers.size() < n) {
+	//							inliers.clear();
+	//							continue;
+	//						}
+
+	//						// Refit ellipse to inliers
+	//						ellipseInlierFit = fitEllipse(inliers);
+	//						conicInlierFit = pupiltracker::ConicSection(ellipseInlierFit);
+
+	//						// Normalise ellipse to have width as the major axis.
+	//						if (ellipseInlierFit.size.height > ellipseInlierFit.size.width)
+	//						{
+	//							ellipseInlierFit.angle = std::fmod(ellipseInlierFit.angle + 90, 180);
+	//							std::swap(ellipseInlierFit.size.height, ellipseInlierFit.size.width);
+	//						}
+	//					}
+	//					if (inliers.empty())
+	//						continue;
+
+	//					// Discard useless ellipses again
+	//					s = ellipseInlierFit.size;
+	//					if (!ellipseInlierFit.center.inside(bb)
+	//						|| s.height > params.Radius_Max * 2
+	//						|| s.width > params.Radius_Max * 2
+	//						|| s.height < params.Radius_Min * 2 && s.width < params.Radius_Min * 2
+	//						|| s.height > 4 * s.width
+	//						|| s.width > 4 * s.height
+	//						)
+	//					{
+	//						// Bad ellipse! Go to your room!
+	//						continue;
+	//					}
+
+	//					// Calculate ellipse goodness
+	//					double ellipseGoodness = 0;
+	//					if (params.ImageAwareSupport)
+	//					{
+	//						BOOST_FOREACH(cv::Point2f& p, inliers)
+	//						{
+	//							cv::Point2f grad = conicInlierFit.algebraicGradientDir(p);
+	//							float dx = mDX(p);
+	//							float dy = mDY(p);
+
+	//							double edgeStrength = dx * grad.x + dy * grad.y;
+
+	//							ellipseGoodness += edgeStrength;
+	//						}
+	//					}
+	//					else
+	//					{
+	//						ellipseGoodness = inliers.size();
+	//					}
+
+	//					if (ellipseGoodness > out.bestEllipseGoodness)
+	//					{
+	//						std::swap(out.bestEllipseGoodness, ellipseGoodness);
+	//						std::swap(out.bestInliers, inliers);
+	//						std::swap(out.bestEllipse, ellipseInlierFit);
+
+	//						// Early termination, if 90% of points match
+	//						if (params.EarlyTerminationPercentage > 0 && out.bestInliers.size() > params.EarlyTerminationPercentage*edgePoints.size() / 100)
+	//						{
+	//							earlyTermination = true;
+	//							break;
+	//						}
+	//					}
+
+	//				}
+	//				//std::cout << "Ransac end" << std::endl;
+	//			}
+
+	//			void join(EllipseRansac& other)
+	//			{
+	//				//std::cout << "Ransac join" << std::endl;
+	//				if (other.out.bestEllipseGoodness > out.bestEllipseGoodness)
+	//				{
+	//					std::swap(out.bestEllipseGoodness, other.out.bestEllipseGoodness);
+	//					std::swap(out.bestInliers, other.out.bestInliers);
+	//					std::swap(out.bestEllipse, other.out.bestEllipse);
+	//				}
+	//				out.earlyRejections += other.out.earlyRejections;
+	//				earlyTermination |= other.earlyTermination;
+
+	//				out.earlyTermination = earlyTermination;
+	//			}
+	//		};
 
 
-			int earlyRejections = ransac.out.earlyRejections;
-			bool earlyTermination = ransac.out.earlyTermination;
+	//		cv::Mat_<float> mPupilSobelX;
+	//		cv::Mat_<float> mPupilSobelY;
+	//		cv::Sobel(img_blur, mPupilSobelX, CV_32F, 1, 0, 3);
+	//		cv::Sobel(img_blur, mPupilSobelY, CV_32F, 0, 1, 3);
+	//		Rect bbPupil(0, 0, img_blur.cols, img_blur.rows);
+	//		EllipseRansac ransac(params, edgePoints, n, bbPupil, mPupilSobelX, mPupilSobelY);
+	//		try
+	//		{
+	//			tbb::parallel_reduce(tbb::blocked_range<size_t>(0, k, k / 8), ransac);
+	//		}
+	//		catch (std::exception& e)
+	//		{
+	//			const char* c = e.what();
+	//			std::cerr << e.what() << std::endl;
+	//		}
+	//		inliers = ransac.out.bestInliers;
 
 
-			cv::RotatedRect ellipseBestFit = ransac.out.bestEllipse;
-			pupiltracker::ConicSection conicBestFit(ellipseBestFit);
-			std::vector<pupiltracker::EdgePoint> edgePoints2;
-			BOOST_FOREACH(const cv::Point2f& p, edgePoints)
-			{
-				cv::Point2f grad = conicBestFit.algebraicGradientDir(p);
-				float dx = mPupilSobelX(p);
-				float dy = mPupilSobelY(p);
+	//		int earlyRejections = ransac.out.earlyRejections;
+	//		bool earlyTermination = ransac.out.earlyTermination;
 
-				edgePoints2.push_back(pupiltracker::EdgePoint(p, dx*grad.x + dy * grad.y));
-			}
 
-			elPupil = ellipseBestFit;
-			/*elPupil.center.x += roiPupil.x;
-			elPupil.center.y += roiPupil.y;*/
-		}
+	//		cv::RotatedRect ellipseBestFit = ransac.out.bestEllipse;
+	//		pupiltracker::ConicSection conicBestFit(ellipseBestFit);
+	//		std::vector<pupiltracker::EdgePoint> edgePoints2;
+	//		BOOST_FOREACH(const cv::Point2f& p, edgePoints)
+	//		{
+	//			cv::Point2f grad = conicBestFit.algebraicGradientDir(p);
+	//			float dx = mPupilSobelX(p);
+	//			float dy = mPupilSobelY(p);
 
-		if (inliers.size() == 0)
-			return false;
+	//			edgePoints2.push_back(pupiltracker::EdgePoint(p, dx*grad.x + dy * grad.y));
+	//		}
 
-		cv::Point2f pPupil = elPupil.center;
+	//		elPupil = ellipseBestFit;
+	//		/*elPupil.center.x += roiPupil.x;
+	//		elPupil.center.y += roiPupil.y;*/
+	//	}
 
-		/*out.pPupil = pPupil;
-		out.elPupil = elPupil;
-		out.inliers = inliers;*/
+	//	if (inliers.size() == 0)
+	//		return false;
 
-		return true;
-	}
+	//	cv::Point2f pPupil = elPupil.center;
+
+	//	/*out.pPupil = pPupil;
+	//	out.elPupil = elPupil;
+	//	out.inliers = inliers;*/
+
+	//	return true;
+	//}
 
 
 	

@@ -6,8 +6,6 @@
 
 #include "m_pupil_extraction.h"
 #include "dataset_test.h"
-//#include "PuRe/PuRe.h"
-//#include <QDebug>
 
 
 

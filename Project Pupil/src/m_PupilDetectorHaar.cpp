@@ -25,7 +25,11 @@ void PupilDetectorHaar::initialSearchRange(const Mat& img_down)
 			if (init_rect_down_.y + init_rect_down_.height > 320 - 35)
 				boundary |= Rect(margin, img_down.rows - margin, img_down.cols - 2 * margin, margin);
 		}
-		roi_ = rectScale(roi_, 1 / ratio_downsample_, false)&boundary;
+		if (frameNum_ == 1)
+			//set a small "roi" for the first frame.
+			roi_ = rectScale(init_rect_down_, 2)&boundary;
+		else
+			roi_ = boundary;
 
 
 		//w strategy
@@ -38,7 +42,7 @@ void PupilDetectorHaar::initialSearchRange(const Mat& img_down)
 
 
 void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_coarse,
-	Rect& outer_rect_coarse, double& max_response_coarse)
+	Rect& outer_rect_coarse, double& max_response_coarse, double mu_inner, double mu_outer)
 {
 	initialSearchRange(img_down);
 
@@ -154,7 +158,7 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 	
 	outer_rect_coarse = rectScale(pupil_rect_coarse, ratio_outer_, true, useSquareHaar_)&imgboundary_;
 	max_response_coarse = getResponseValue(integral_img_, pupil_rect_coarse, outer_rect_coarse, kf_,
-		mu_inner_, mu_outer_);
+		mu_inner, mu_outer);
 }
 
 

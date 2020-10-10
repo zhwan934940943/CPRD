@@ -8,7 +8,7 @@
 #include "PuRe/PuRe.h"
 #include "m_PupilDetectorHaar.h"
 #include "m_pupil_extraction.h"
-#include "utils.h"
+
 
 class DatasetTest
 {
@@ -624,6 +624,7 @@ public:
 		dataset_dir = allDatasets_dir + dataset_name + "/";
 		cout << "dataset dir = " << dataset_dir << "\n";
 		
+		//1 input
 		//caselist.txt has prefixes for each case.
 		readStringList_txt(dataset_dir + "caselist.txt", caselist);
 
@@ -635,6 +636,7 @@ public:
 			init_rectlist.push_back(Rect(x, y, width, height));
 		}
 
+		//2 results
 		results_dir = allDatasets_dir + "results/";
 		cout << "result dir = " << results_dir << "\n";
 	}
@@ -642,21 +644,19 @@ public:
 	void LPWTest_Haar()
 	{
 		cout << "LPWTest_Haar\n";
-
-		//1 dataset init
-		LPW_init();
-
-		//method init
 		method_name = "Haar";
 
+		LPW_init();
 
-		//for (int i = 0; i != caselist.size(); i++)//caselist.size()
-		int i = 56; //test a case
+
+		for (int i = 0; i != caselist.size(); i++)//caselist.size()
+		//int i = 56; //test a case
 		//for (int i = 62; i != 64; i++)//caselist.size()
 		{
+			//------------------------- 1 case init -------------------------
 			string casename = caselist[i];
 			cout << "casename = " << casename << endl;
-			VideoCapture cap(dataset_dir + casename + ".avi");
+			
 
 			//groundtruth file. e.g., 1-1.txt
 			ifstream fin_groundtruth(dataset_dir + casename + ".txt");
@@ -667,30 +667,23 @@ public:
 
 			
 
-			//2 Haar init
+			//------------------------- 2 Haar init -------------------------
 			PupilDetectorHaar haar;
-			haar.kf_ = 1; //1,1.1,1.2,1.3
+			haar.kf_ = 1.4; //1,1.1,1.2,1.3
 			haar.ratio_outer_ = 1.42;//1.42, 2, 3, 4, 5, 6, 7
 			haar.useSquareHaar_ = false;
 			haar.useInitRect_ = false;
 			haar.xystep_ = 2;//2,3,4
 			haar.whstep_ = 4;
 
+			if (haar.useInitRect_)
+				haar.init_rect_ = init_rectlist[i];
+			
+
 			cout << "useInitRect = " << haar.useInitRect_ << "	"
 				<< "useSquareHaar = " << haar.useSquareHaar_ << "\n"
 				<< "r = " << haar.ratio_outer_ << "	" << "kf = " << haar.kf_ << "	"
 				<< "wh_step = " << haar.whstep_ << "	" << "xy_step = " << haar.xystep_ << "\n";
-
-			
-			if (haar.useInitRect_)
-			{
-				haar.init_rect_ = init_rectlist[i];
-
-				//经测试，初始scale 2,3,4都可得到初始rect的响应
-				haar.roi_ = rectScale(init_rectlist[i], 2);//仅第一帧的ROI
-				//可以考虑下面的方法
-				//params.roi = (x, y +h/2-w/2, w, w)//init_rectlist[i];
-			}
 
 
 			//3 results dir
@@ -703,174 +696,81 @@ public:
 			}
 
 
-			
 
-
-			double x, y;
-			bool firstFrameFlag = true;
-			bool secondFrameFlag = false;
-			int frameCount = 0;
+#ifdef RESULT_EXPORT
+			int saveFrameNum = 2; //save a specific frame results for better analysis
 
 			cv::VideoWriter coarse_vid, fine_vid;
-			//coarse_vid.open(to_string(i)+"coarse.avi", CV_FOURCC('M', 'J', 'P', 'G'), 95.0, cv::Size(640, 480), true);
-			//fine_vid.open(to_string(i) + "fine.avi", CV_FOURCC('M', 'J', 'P', 'G'), 95.0, cv::Size(640, 480), true);
+			coarse_vid.open(to_string(i)+"coarse.avi", CV_FOURCC('M', 'J', 'P', 'G'), 95.0, cv::Size(640, 480), true);
+			fine_vid.open(to_string(i) + "fine.avi", CV_FOURCC('M', 'J', 'P', 'G'), 95.0, cv::Size(640, 480), true);
+#endif
 
-			while (fin_groundtruth >> x)
+			VideoCapture cap(dataset_dir + casename + ".avi");
+			double ground_x, ground_y; //groundtruth
+			while (fin_groundtruth >> ground_x)
 			{
-				frameCount += 1;
-				if (frameCount == 2)
-					secondFrameFlag = true;
-				else
-					secondFrameFlag = false;
-
-				fin_groundtruth >> y;
+				fin_groundtruth >> ground_y;
 
 				Mat frame;
 				cap >> frame;
-				{
-					if (frame.empty())
-						throw("image import error!");
-				}
+				checkImg(frame);
 
 				Mat img_gray;
 				img2Gray(frame, img_gray);
 				//filterImg(img_gray, img_gray);
 
-
-				
 				haar.detect(img_gray);
 
-				if (firstFrameFlag)
+
+				Mat img_coarse,img_fine;
+				cv::cvtColor(img_gray, img_coarse, CV_GRAY2BGR);
+
+				haar.drawCoarse(img_coarse);
+				img_fine = img_coarse.clone();
+				rectangle(img_fine, haar.pupil_rect_fine_, BLUE, 1, 8);
+
+#ifdef RESULT_EXPORT
+				if (haar.frameNum_ == saveFrameNum)
 				{
-					haar.mu_inner0_ = haar.mu_inner_;
-					haar.mu_outer0_ = haar.mu_outer_;
-					firstFrameFlag = false;
+					imwrite(to_string(i) + "Coarse.png", img_haar);
+					imwrite(to_string(i) + "Fine.png", img_haar);
+					break;
 				}
 
+				coarse_vid << img_haar;
+				fine_vid << img_haar;
+#endif
 
-				//xy策略：ROI
-				//params.roi = rectScale(haar.pupil_rect_, 4);
-				haar.roi_ = Rect(0, 0, img_gray.cols, img_gray.rows);
 
-				Mat img_haar;
-				cv::cvtColor(img_gray, img_haar, CV_GRAY2BGR);
-				haar.drawCoarse(img_haar);
-				//coarse_vid << img_haar;
-				//if (secondFrameFlag)
-				//	imwrite(to_string(i)+"Coarse.png", img_haar);
-				rectangle(img_haar, haar.pupil_rect_fine_, BLUE, 1, 8);
-				//if (secondFrameFlag)
-				//{
-				//	imwrite(to_string(i) + "Fine.png", img_haar);
-				//	break;
-				//}
-				//fine_vid << img_haar;
-					
-				bool flag_sucess_inner = haar.pupil_rect_coarse_.contains(Point2f(x, y));
-				bool flag_sucess_outer = haar.outer_rect_coarse_.contains(Point2f(x, y));
-
-				//flag: 是否备选的rect内含有pupil
+				bool flag_sucess_inner = haar.pupil_rect_coarse_.contains(Point2f(ground_x, ground_y));
+				bool flag_sucess_outer = haar.outer_rect_coarse_.contains(Point2f(ground_x, ground_y));
+				//check whether rectlist with different w contains the ground truth.
 				bool flag_sucess_candidates = false;
 				vector<Rect> rectlist = haar.inner_rectlist_;
 				for (int i = 0; i < rectlist.size(); i++)
 				{
-					if (rectlist[i].contains(Point2f(x, y)))
+					if (rectlist[i].contains(Point2f(ground_x, ground_y)))
 					{
 						flag_sucess_candidates = true;
 						break;
 					}
 				}
 
-				Point2f center(haar.pupil_rect_coarse_.x + haar.pupil_rect_coarse_.width*1.0f / 2,
-					haar.pupil_rect_coarse_.y + haar.pupil_rect_coarse_.height*1.0f / 2);
-				double error = norm(center - Point2f(x, y));
+				double error_coarse = norm(haar.center_coarse_ - Point2f(ground_x, ground_y));
 
-				bool flag_sucess_inner2 = haar.pupil_rect_fine_.contains(Point2f(x, y));
-				Point2f center2(haar.pupil_rect_fine_.x + haar.pupil_rect_fine_.width*1.0f / 2,
-					haar.pupil_rect_fine_.y + haar.pupil_rect_fine_.height*1.0f / 2);
-				double error2 = norm(center2 - Point2f(x, y));
+				bool flag_sucess_fine = haar.pupil_rect_fine_.contains(Point2f(ground_x, ground_y));
+				double error_fine = norm(haar.center_fine_ - Point2f(ground_x, ground_y));
 
 
 				//---------------------以上为Haar检测及其结果----------------------------
-
-				Rect boundary(0, 0, img_gray.cols, img_gray.rows);
-				double validRatio = 1.2; //策略：1.42
-				Rect validRect = rectScale(haar.pupil_rect_fine_, validRatio)&boundary;
-				Mat img_pupil = img_gray(validRect);
-				GaussianBlur(img_pupil, img_pupil, Size(5, 5), 0, 0);
-
-
-				Point2f center3;
-
 				cv::RotatedRect ellipse_rect;
-				if (haar.mu_outer_ - haar.mu_inner_ < 10) //策略：0,10,20
-					center3 = center2;
-				else
-				{
-					//edges提取
-					//自适应阈值canny method
-					PupilExtractionMethod detector;
-					/*Mat edges;
-					Rect inlinerRect = haar.pupil_rect2_ - haar.pupil_rect2_.tl();
-					detector.detectPupilContour(img_pupil, edges, inlinerRect);*/
+				Point2f center_fitting;
+				bool flag = haar.extractEllipse(img_gray, ellipse_rect, center_fitting);
 
-					double tau1 = 1 - 20.0 / img_pupil.cols;//策略：10，20
-					Mat edges = canny_pure(img_pupil, false, false, 64 * 2, tau1, 0.5);
+				drawMarker(img_fine, center_fitting, Scalar(0, 0, 255));
+				ellipse(img_fine, ellipse_rect, RED);
 
-					Mat edges_filter;
-					{
-						int tau;
-						//if (haar.mu_outer_ - haar.mu_inner_ > 30)
-						//	tau = params.mu_outer;
-						//else
-						tau = haar.mu_inner_ + 100;
-						//光强抑制	
-						//PupilDetectorHaar::filterLight(img_t, img_t, tau);
-
-						//1 利用光强过强抑制部分edges
-						Mat img_bw;
-						threshold(img_pupil, img_bw, tau, 255, cv::THRESH_BINARY);
-						Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, Size(5, 5));
-						dilate(img_bw, img_bw, kernel, Point(-1, -1), 1);
-						edges_filter = edges & ~img_bw;
-
-						//2 利用curves size过滤较小的片段
-						edgesFilter(edges_filter);
-					}
-					imshow("edges", edges);
-					imshow("edgesF", edges_filter);
-
-					//int K;//iterations
-					//{
-					//	double p = 0.99;	// success rate 0.99
-					//	double e = 0.7;		// outlier ratio, 0.7效果很好，但是时间长
-					//	K = cvRound(log(1 - p) / log(1 - pow(1 - e, 5)));
-					//}
-					//RotatedRect ellipse_rect;
-					//detector.fitPupilEllipse(edges_filter, ellipse_rect, K);
-
-
-					//利用RANSAC
-					detector.fitPupilEllipseSwirski(img_pupil, edges_filter, ellipse_rect);
-					ellipse_rect.center = ellipse_rect.center + Point2f(validRect.tl());
-					if (haar.pupil_rect_fine_.contains(ellipse_rect.center) && (ellipse_rect.size.width > 0))
-					{
-						center3 = ellipse_rect.center;
-						drawMarker(img_haar, center3, Scalar(0, 0, 255));
-						ellipse(img_haar, ellipse_rect, RED);
-					}
-					else
-						center3 = center2;
-
-
-					//	//利用PuRe进一步提取
-					//	//PuRe detectorPuRe;
-					//	//Pupil pupil = detectorPuRe.run(img_pupil);
-					//	//pupil.center = pupil.center + Point2f(validRect.tl());
-				}//end if
-
-
-				double error3 = norm(center3 - Point2f(x, y));
+				double error_fitting = norm(center_fitting - Point2f(ground_x, ground_y));
 
 
 
@@ -878,21 +778,24 @@ public:
 				{
 					fout << flag_sucess_inner << "	" << flag_sucess_outer << "	"
 						<< rectlist.size() << "	" << flag_sucess_candidates << "	"
-						<< error << "	" << haar.max_response_coarse_ << "	"
+						<< error_coarse << "	" << haar.max_response_coarse_ << "	"
 						<< haar.mu_inner_ << "	" << haar.mu_outer_ << "	"
-						//以下是detectToFine的结果
-						<< flag_sucess_inner2 << "	" << error2 << "	"
-						//以下为ellipse fitting结果
-						<< error3 << endl;
+						//below: fine detection
+						<< flag_sucess_fine << "	" << error_fine << "	"
+						//below: ellipse fitting
+						<< error_fitting << endl;
 				}
 				//imshow("pupil region", img_pupil);
-				imshow("Results", img_haar);
+				imshow("Results", img_fine);
 				waitKey(5);
 			}//end while
 			fin_groundtruth.close();
 			fout.close();
+
+#ifdef RESULT_EXPORT
 			coarse_vid.release();
 			fine_vid.release();
+#endif
 		}//end for
 
 	}
