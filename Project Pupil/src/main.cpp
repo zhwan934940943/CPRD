@@ -50,8 +50,6 @@ void imgTest2()
 		measureTime([&]() {detector.detect(frame); }, "detector\t");
 		waitKey(1000);
 	}
-
-
 }
 
 

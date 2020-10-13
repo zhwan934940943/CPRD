@@ -617,7 +617,6 @@ public:
 			string casename = caselist[i];
 			cout << "casename = " << casename << endl;
 			
-
 			//groundtruth file. e.g., 1-1.txt
 			ifstream fin_groundtruth(dataset_dir + casename + ".txt");
 			{
@@ -687,7 +686,7 @@ public:
 					ellipse_rect, center_fitting);
 
 
-
+				//show
 				Mat img_coarse,img_fine;
 				cv::cvtColor(img_gray, img_coarse, CV_GRAY2BGR);
 
@@ -701,19 +700,8 @@ public:
 				imshow("Results", img_fine);
 				waitKey(5);
 
-#ifdef RESULT_EXPORT
-				if (haar.frameNum_ == saveFrameNum)
-				{
-					imwrite(to_string(i) + "Coarse.png", img_haar);
-					imwrite(to_string(i) + "Fine.png", img_haar);
-					break;
-				}
 
-				coarse_vid << img_haar;
-				fine_vid << img_haar;
-#endif
-
-
+				//calculate & save results
 				bool flag_sucess_inner = haar.pupil_rect_coarse_.contains(Point2f(ground_x, ground_y));
 				bool flag_sucess_outer = haar.outer_rect_coarse_.contains(Point2f(ground_x, ground_y));
 				//check whether rectlist with different w contains the ground truth.
@@ -732,11 +720,7 @@ public:
 				bool flag_sucess_fine = haar.pupil_rect_fine_.contains(Point2f(ground_x, ground_y));
 				double error_fine = norm(haar.center_fine_ - Point2f(ground_x, ground_y));
 
-
 				double error_fitting = norm(center_fitting - Point2f(ground_x, ground_y));
-
-
-				//save results
 				{
 					fout << flag_sucess_inner << "	" << flag_sucess_outer << "	"
 						<< rectlist.size() << "	" << flag_sucess_candidates << "	"
@@ -747,6 +731,19 @@ public:
 						//below: ellipse fitting
 						<< error_fitting << endl;
 				}
+
+
+#ifdef RESULT_EXPORT
+				if (haar.frameNum_ == saveFrameNum)
+				{
+					imwrite(to_string(i) + "Coarse.png", img_haar);
+					imwrite(to_string(i) + "Fine.png", img_haar);
+					break;
+				}
+
+				coarse_vid << img_haar;
+				fine_vid << img_haar;
+#endif
 			}//end while
 			fin_groundtruth.close();
 			fout.close();

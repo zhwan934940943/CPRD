@@ -243,7 +243,7 @@ public:
 			return false;
 
 		Rect boundary(0, 0, img_gray.cols, img_gray.rows);
-		double validRatio = 1.2; //策略：1.42
+		double validRatio = 1.2; //or：1.42
 		Rect validRect = rectScale(pupil_rect, validRatio)&boundary;
 		Mat img_pupil = img_gray(validRect);
 		GaussianBlur(img_pupil, img_pupil, Size(5, 5), 0, 0);
@@ -251,6 +251,7 @@ public:
 		Mat edges_filter;
 		detectEdges(img_pupil,edges_filter);
 
+		//imshow("edgesF", edges_filter);
 
 		//Fit ellipse by RANSAC
 		//int K;//iterations
@@ -274,7 +275,7 @@ public:
 		else
 			return false;
 
-		//	//利用PuRe进一步提取
+		//	//futher: PuRe
 		//	//PuRe detectorPuRe;
 		//	//Pupil pupil = detectorPuRe.run(img_pupil);
 		//	//pupil.center = pupil.center + Point2f(validRect.tl());
@@ -305,16 +306,7 @@ public:
 			//2 filter edges by curves size
 			edgesFilter(edges_filter);
 		}
-		//imshow("edges", edges);
-		//imshow("edgesF", edges_filter);
 	}
-
-
-
-	
-
-
-
 
 
 
@@ -435,7 +427,7 @@ private:
 	{
 		for (int i = 0; i < rectlist.size(); ++i)
 		{
-			bool flag_intersect = false; //表明是否存在相交
+			bool flag_intersect = false; //flag: two rectangles intersect
 			for (int j = 0; j < rectlist2.size(); ++j)
 			{
 				Rect tmp = rectlist[i] & rectlist2[j];
@@ -452,7 +444,7 @@ private:
 				}
 
 			}
-			if (!flag_intersect)//如果都不相交
+			if (!flag_intersect)
 			{
 				rectlist2.push_back(rectlist[i]);
 				response2.push_back(response[i]);

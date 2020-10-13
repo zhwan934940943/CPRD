@@ -213,19 +213,26 @@ public:
 		cv::dilate(img_bw, img_bw, kernel, Point(-1, -1), 1);
 	}
 
+
+
+
+	/* try different methods to filter eye image.
+	*/
 	void filterImg(const Mat& img_gray, Mat& img_blur)
 	{
+		//1 Gaussian
 		cv::GaussianBlur(img_gray, img_blur, Size(5, 5), 0, 0);
 
-		//mean shift 可以将边缘变窄
+		//2 mean shift: can narrow edges.
 		//Mat temp;
 		//cvtColor(img_blur, temp, CV_GRAY2BGR);
 		////measureTime([&]() {bilateralFilter(img_blur, temp, 5, 100, 1, 4); }, "bilateral\t");
 		//measureTime([&]() {pyrMeanShiftFiltering(temp, temp, 20, 20, 2); }, "mean shift\t");
 		//cvtColor(temp, img_blur, CV_BGR2GRAY); 
 
-		//close操作可以弱化睫毛，效果很好
-		//open操作可以弱化小亮斑
+		//3 morphology operation
+		//close operation: weaken thin eyelashes
+		//open operation: weaken small light spots
 		Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, Size(7, 7));
 		Mat dst;
 		cv::morphologyEx(img_blur, dst, cv::MORPH_CLOSE, kernel, Point(-1, -1), 1);
