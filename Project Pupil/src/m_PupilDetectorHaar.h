@@ -53,6 +53,7 @@ namespace myColor
 };
 
 
+//TODO: old version, delete
 class HaarParams
 {
 public:
@@ -80,6 +81,8 @@ public:
 	double mu_inner;
 	double mu_outer;
 };
+
+
 
 
 /* Detects pupil features using Haar detector.
@@ -172,7 +175,7 @@ public:
 
 
 	void coarseDetection(const Mat& img_down, Rect& pupil_rect_coarse,
-		Rect& outer_rect_coarse, double& max_response_coarse, double mu_inner, double mu_outer);
+		Rect& outer_rect_coarse, double& max_response_coarse, double& mu_inner, double& mu_outer);
 
 
 	void fineDetection(const Mat& img_down, const Rect& pupil_rect_coarse, Rect& pupil_rect_fine);
@@ -233,16 +236,15 @@ public:
 
 
 	//not in down sample scale, but in original scale.
-	bool extractEllipse(const Mat& img_gray, cv::RotatedRect& ellipse_rect, Point2f& center_fitting)
+	bool extractEllipse(const Mat& img_gray, const Rect& pupil_rect, cv::RotatedRect& ellipse_rect, Point2f& center_fitting)
 	{
 		center_fitting = center_fine_; //[default]
 		if (mu_outer_ - mu_inner_ < 10) //others£º0,10,20
 			return false;
 
-
 		Rect boundary(0, 0, img_gray.cols, img_gray.rows);
 		double validRatio = 1.2; //²ßÂÔ£º1.42
-		Rect validRect = rectScale(pupil_rect_fine_, validRatio)&boundary;
+		Rect validRect = rectScale(pupil_rect, validRatio)&boundary;
 		Mat img_pupil = img_gray(validRect);
 		GaussianBlur(img_pupil, img_pupil, Size(5, 5), 0, 0);
 
@@ -508,7 +510,6 @@ private:
 	// intergral_img: a matrix, not a image, and its values are always large.So we 
 	//   set its type <int>
 	Mat integral_img_;// size: (M+1)*(N+1)
-
 };
 
 #endif

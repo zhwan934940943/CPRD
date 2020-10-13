@@ -42,7 +42,7 @@ void PupilDetectorHaar::initialSearchRange(const Mat& img_down)
 
 
 void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_coarse,
-	Rect& outer_rect_coarse, double& max_response_coarse, double mu_inner, double mu_outer)
+	Rect& outer_rect_coarse, double& max_response_coarse, double& mu_inner, double& mu_outer)
 {
 	initialSearchRange(img_down);
 
@@ -75,10 +75,10 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 		for (int height = height_min; height <= width; height += whstep_)
 		{
 			Rect pupil_rect, outer_rect;
-			double mu_inner, mu_outer;
+			double mu_inner_t, mu_outer_t;
 			auto max_response = getResponseMap(integral_img_, width, height, 
 				ratio_outer_, useSquareHaar_, kf_, roi_, xystep_, 
-				pupil_rect, outer_rect, mu_inner, mu_outer);
+				pupil_rect, outer_rect, mu_inner_t, mu_outer_t);
 
 			if (max_response_coarse < max_response)
 			{
@@ -126,7 +126,8 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 	{
 		//non-maximum suppression
 		vector<double> responselist;
-		rectSuppression(rectlistAll, responselistAll, inner_rectlist_, responselist);
+		vector<Rect> inner_rectlist;
+		rectSuppression(rectlistAll, responselistAll, inner_rectlist, responselist);
 		//Point2f initCenter((params.init_rect.x + params.init_rect.width) / 2,
 		//	(params.init_rect.y + params.init_rect.height) / 2);
 
@@ -134,26 +135,26 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 		Point2f initCenter((init_rect_down_.x + init_rect_down_.width) / 2,
 			(init_rect_down_.y + init_rect_down_.height) / 2);
 		double dis = 10000;
-		for (int i = 0; i < inner_rectlist_.size(); i++)
+		for (int i = 0; i < inner_rectlist.size(); i++)
 		{
 #ifdef HAAR_TEST
-			Rect outer_rect = rectScale(inner_rectlist_[i], ratio_outer_, true, useSquareHaar_);
-			draw(img_BGR, inner_rectlist_[i], outer_rect, responselist[i]);
+			Rect outer_rect = rectScale(inner_rectlist[i], ratio_outer_, true, useSquareHaar_);
+			draw(img_BGR, inner_rectlist[i], outer_rect, responselist[i]);
 #endif
 
-			Point2f iCenter(inner_rectlist_[i].x + (inner_rectlist_[i].width) / 2,
-				inner_rectlist_[i].y + (inner_rectlist_[i].height) / 2);
+			Point2f iCenter(inner_rectlist[i].x + (inner_rectlist[i].width) / 2,
+				inner_rectlist[i].y + (inner_rectlist[i].height) / 2);
 			double dis_t = norm(initCenter - iCenter);
 			if (dis_t < dis)
 			{
-				pupil_rect_coarse_ = inner_rectlist_[i];
+				pupil_rect_coarse = inner_rectlist[i];
 				dis = dis_t;
 			}
 
 			//scale inner rect to the resolution of original image for output.
-			inner_rectlist_[i] = rectScale(inner_rectlist_[i], ratio_downsample_, false);
+			inner_rectlist[i] = rectScale(inner_rectlist[i], ratio_downsample_, false);
 		}
-
+		inner_rectlist_ = inner_rectlist;
 	}
 	
 	outer_rect_coarse = rectScale(pupil_rect_coarse, ratio_outer_, true, useSquareHaar_)&imgboundary_;
@@ -193,8 +194,12 @@ void PupilDetectorHaar::fineDetection(const Mat& img_down, const Rect& pupil_rec
 	area.at<int>(0, 0) = 0;//the first element is the whole image, not consider
 	Mat stats_t;
 	for (int i = 1; i < area.rows; i++)
-		if (area.at<int>(i) > 0.04*img_bw.cols*img_bw.rows) //0.04=1/25
+		if (area.at<int>(i) > 0.04*img_bw.cols*img_bw.rows) //0.01=1/10*1/10
 			stats_t.push_back(stats.row(i));
+
+	//if stats_t.row ==0, there must be some error.
+	//if (stats_t.rows == 0)
+	//	throw("wrong bw image!");
 
 	if (stats_t.rows == 1)
 	{

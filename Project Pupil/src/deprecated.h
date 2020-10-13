@@ -777,3 +777,50 @@ cv::RotatedRect ellipse_rect;
 	//	//Pupil pupil = detectorPuRe.run(img_pupil);
 	//	//pupil.center = pupil.center + Point2f(validRect.tl());
 }//end if
+
+
+
+
+
+void mydataset_init()
+{
+	mydataset_dir = libpath + "data_eye/";
+
+	{
+		string filename = "imagelist.xml";
+		readStringList_xml(mydataset_dir + filename, my_imagelist);
+	}
+
+}
+
+void HaarTest()
+{
+	mydataset_init();
+
+	HaarParams params;
+	params.width_min = 32;
+	params.width_max = 120; //240的一半
+	params.wh_step = 4; //影响程序的执行速度
+	params.outer_ratio = 3;
+
+	for (int i = 0; i < 1; ++i)//imagelist.size()
+	{
+		Mat img;
+		std::cout << endl << my_imagelist[i] << endl;
+		img = imread(mydataset_dir + my_imagelist[i]);
+		Mat img_gray;
+		img2Gray(img, img_gray);
+
+		PupilDetectorHaar haar;
+		haar.detect(img_gray);
+
+		Mat img_haar;
+		cvtColor(img_gray, img_haar, CV_GRAY2BGR);
+		haar.drawCoarse(img_haar);
+		imshow("Eye with haar features", img_haar);
+		waitKey(1000);
+
+		string outname = "haar" + getCurrentTimeStr() + ".png";
+		imwrite(outname, img_haar);
+	}
+}

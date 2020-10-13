@@ -4,6 +4,7 @@
 #define Dataset_Test_H_
 
 #include <my_lib.h>
+
 #include <opencv2/opencv.hpp>
 #include "PuRe/PuRe.h"
 #include "m_PupilDetectorHaar.h"
@@ -43,48 +44,7 @@ public:
 
 
 
-	void mydataset_init()
-	{
-		mydataset_dir = libpath + "data_eye/";
-
-		{
-			string filename = "imagelist.xml";
-			readStringList_xml(mydataset_dir + filename, my_imagelist);
-		}
-
-	}
-
-	void HaarTest()
-	{
-		mydataset_init();
-
-		HaarParams params;
-		params.width_min = 32;
-		params.width_max = 120; //240的一半
-		params.wh_step = 4; //影响程序的执行速度
-		params.outer_ratio = 3;
-
-		for (int i = 0; i < 1; ++i)//imagelist.size()
-		{
-			Mat img;
-			std::cout << endl << my_imagelist[i] << endl;
-			img = imread(mydataset_dir + my_imagelist[i]);
-			Mat img_gray;
-			img2Gray(img, img_gray);
-
-			PupilDetectorHaar haar;
-			haar.detect(img_gray);
-
-			Mat img_haar;
-			cvtColor(img_gray, img_haar, CV_GRAY2BGR);
-			haar.drawCoarse(img_haar);
-			imshow("Eye with haar features", img_haar);
-			waitKey(1000);
-
-			string outname = "haar" + getCurrentTimeStr() + ".png";
-			imwrite(outname, img_haar);
-		}
-	}
+	
 
 	void SwirskiData_init()
 	{
@@ -672,8 +632,8 @@ public:
 			haar.kf_ = 1.4; //1,1.1,1.2,1.3
 			haar.ratio_outer_ = 1.42;//1.42, 2, 3, 4, 5, 6, 7
 			haar.useSquareHaar_ = false;
-			haar.useInitRect_ = false;
-			haar.xystep_ = 2;//2,3,4
+			haar.useInitRect_ = true;
+			haar.xystep_ = 4;//2,3,4
 			haar.whstep_ = 4;
 
 			if (haar.useInitRect_)
@@ -721,6 +681,12 @@ public:
 
 				haar.detect(img_gray);
 
+				cv::RotatedRect ellipse_rect;
+				Point2f center_fitting;
+				bool flag = haar.extractEllipse(img_gray, haar.pupil_rect_fine_,
+					ellipse_rect, center_fitting);
+
+
 
 				Mat img_coarse,img_fine;
 				cv::cvtColor(img_gray, img_coarse, CV_GRAY2BGR);
@@ -728,6 +694,12 @@ public:
 				haar.drawCoarse(img_coarse);
 				img_fine = img_coarse.clone();
 				rectangle(img_fine, haar.pupil_rect_fine_, BLUE, 1, 8);
+
+				drawMarker(img_fine, center_fitting, Scalar(0, 0, 255));
+				ellipse(img_fine, ellipse_rect, RED);
+
+				imshow("Results", img_fine);
+				waitKey(5);
 
 #ifdef RESULT_EXPORT
 				if (haar.frameNum_ == saveFrameNum)
@@ -755,23 +727,13 @@ public:
 						break;
 					}
 				}
-
 				double error_coarse = norm(haar.center_coarse_ - Point2f(ground_x, ground_y));
 
 				bool flag_sucess_fine = haar.pupil_rect_fine_.contains(Point2f(ground_x, ground_y));
 				double error_fine = norm(haar.center_fine_ - Point2f(ground_x, ground_y));
 
 
-				//---------------------以上为Haar检测及其结果----------------------------
-				cv::RotatedRect ellipse_rect;
-				Point2f center_fitting;
-				bool flag = haar.extractEllipse(img_gray, ellipse_rect, center_fitting);
-
-				drawMarker(img_fine, center_fitting, Scalar(0, 0, 255));
-				ellipse(img_fine, ellipse_rect, RED);
-
 				double error_fitting = norm(center_fitting - Point2f(ground_x, ground_y));
-
 
 
 				//save results
@@ -785,9 +747,6 @@ public:
 						//below: ellipse fitting
 						<< error_fitting << endl;
 				}
-				//imshow("pupil region", img_pupil);
-				imshow("Results", img_fine);
-				waitKey(5);
 			}//end while
 			fin_groundtruth.close();
 			fout.close();
