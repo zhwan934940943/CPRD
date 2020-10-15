@@ -22,12 +22,11 @@
 using namespace std;
 //using namespace cv;
 using namespace mycv;
-using namespace mymath;
+//using namespace mymath;
 
 
 class PupilExtractionMethod
 {
-
 public:
 	void detect(Mat& img_in)
 	{
@@ -37,8 +36,12 @@ public:
 
 		section("1 detect pupil region");
 		PupilDetectorHaar haar;
-		measureTime([&]() {detectPupilRegion(img_gray, haar);
-		}, "haar\t");
+		haar.ratio_outer_ = 2;
+		haar.kf_ = 1;
+		haar.useSquareHaar_ = false;
+		haar.useInitRect_ = false;
+
+		haar.detect(img_gray);
 
 		haar.drawCoarse(img_BGR);
 		rectangle(img_BGR, haar.pupil_rect_fine_, BLUE, 1, 8);
@@ -122,15 +125,7 @@ public:
 		imshow("edges+", edges_);
 	}
 
-	void detectPupilRegion(const Mat& img_gray, PupilDetectorHaar& haar)
-	{
-		haar.ratio_outer_ = 2;
-		haar.kf_ = 1;
-		haar.useSquareHaar_ = false;
-		haar.useInitRect_ = false;
 
-		haar.detect(img_gray);
-	}
 
 	void detectPupilMask(const Mat& img_gray, Mat& img_bw, int illuminationFlag = 0)
 	{

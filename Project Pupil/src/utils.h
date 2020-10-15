@@ -11,6 +11,9 @@
 #include <vector>
 #include <string>
 
+#include<chrono>
+#include<mutex>
+
 //use ellipse fitting by Swirski 2012
 #include "Swirski2012/PupilTracker.h"
 #include "Swirski2012/utils.h"
@@ -22,6 +25,86 @@
 using namespace std;
 
 using cv::Mat;
+using cv::Mat_;
+using cv::Point;
+using cv::Point2f;
+using cv::Point2d;
+using cv::Scalar;
+using cv::Rect;
+using cv::Rect2f;
+using cv::VideoCapture;
+using cv::Range;
+using cv::threshold;
+using cv::waitKey;
+using cv::imread;
+using cv::imshow;
+using cv::namedWindow;
+using cv::moveWindow;
+using cv::rectangle;
+using cv::RotatedRect;
+using cv::Size;
+using cv::Sobel;
+using cv::morphologyEx;
+using cv::dilate;
+using cv::erode;
+using cv::cvtColor;
+
+
+#define RED Scalar(0, 0, 255)
+#define BLUE Scalar(255, 0, 0)
+#define PINK Scalar(230, 130, 255)
+#define LIGHTBLUE Scalar(255, 255, 160)
+#define GREEN Scalar(0, 255, 0)
+
+#define PI       3.14159265358979323846   //M_PI
+
+
+
+
+/* Tests a function and display the mean time (ms).
+@param func is callable. This function can not have input args.
+	Using lambda function as input is very convenient.
+@param decl is the declaration for the function.
+@param measure_times set the total measurea times.
+example:
+	measureTime([](){
+	code;
+	});
+Note: C-style clock
+	auto t=clock();
+	...
+	t = clock() - t;
+	cout << "\n" "elapseTime = " << double(t) / CLOCKS_PER_SEC * 1000 << "ms" << endl;
+Through test,C-style has the similar accuracy as system_clock.
+*/
+static std::mutex cout_mutex;
+template<typename T> inline
+void measureTime(T&& func, string decl = "this function", int measure_times = 1, bool thread_flag = false)
+{
+	using namespace std::chrono;
+	auto start = high_resolution_clock::now(); //和system_clock有什么区别
+	for (auto i = 1; i <= measure_times; ++i)
+		func();
+	auto end = high_resolution_clock::now();
+	duration<double, milli> elapsed_ms = end - start;
+
+	if (thread_flag)
+		std::lock_guard<std::mutex> lock(cout_mutex);
+	std::cout << decl << "elapsed time:=" << elapsed_ms.count() / measure_times << "ms" << std::endl;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /** Reads string list.
@@ -48,6 +131,37 @@ inline bool readStringList_txt(const string& pathname, vector<string>& stringlis
 
 	return true;
 }
+
+
+/** Reads string list.
+e.g.,
+	string dirname = libpath + "data_eye/";
+	string filename = "imagelist.xml";
+	vector<string> imagelist;
+	readStringList(dirname + filename, imagelist);
+*/
+inline bool readStringList_xml(const string& pathname, vector<string>& stringlist)
+{
+	stringlist.resize(0);
+	cv::FileStorage fs(pathname, cv::FileStorage::READ);
+	if (!fs.isOpened())
+		return false;
+	cv::FileNode filenode = fs.getFirstTopLevelNode();
+	if (filenode.type() != cv::FileNode::SEQ)
+		return false;
+	cv::FileNodeIterator iter = filenode.begin(), iter_end = filenode.end();
+	for (; iter != iter_end; ++iter)
+		stringlist.push_back((string)*iter);
+	return true;
+}
+
+
+
+
+
+
+
+
 
 
 /* checks the validity of the import image
@@ -126,7 +240,7 @@ inline void putNumber(const Mat& src, const double& number, Point org, Scalar co
 	{
 		char buffer[10];
 		sprintf_s(buffer, "%.0f", number);
-		putText(src, buffer, org, cv::FONT_HERSHEY_SIMPLEX, 0.8, color);
+		putText(src, buffer, org, cv::FONT_HERSHEY_SIMPLEX, 0.8, color,1);
 	}
 }
 

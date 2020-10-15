@@ -8,19 +8,36 @@
 //------------------------------------------------
 //					an example
 //------------------------------------------------
-//HaarParams params;
-//params.width_min = 51;
-//params.width_max = 300;
-//params.width_step = 4;
-//params.ratio_min = 2;
-//params.ratio_max = 3;
-//measureTime([&]() {
-//	haar.Detect(img.gray, params);
-//});
+//PupilDetectorHaar haar;
+//haar.kf_ = 1.4; //1,1.1,1.2,1.3,1.4,...
+//haar.ratio_outer_ = 1.42;//1.42, 2, 3, 4, 5, 6, 7
+//haar.useSquareHaar_ = 0;
+//haar.useInitRect_ = false;
+//haar.xystep_ = 2;//2,3,4,...
+//haar.whstep_ = 2;//2,3,4,...
 //
-//haar.draw(img.BGR);
-//imshow("image", img.BGR);
-//waitKey(30);
+//Mat img_gray;
+//haar.detect(img_gray);
+//
+//cv::RotatedRect ellipse_rect;
+//Point2f center_fitting;
+//bool flag = haar.extractEllipse(img_gray, haar.pupil_rect_fine_,
+//	ellipse_rect, center_fitting);
+//
+////show
+//Mat img_coarse, img_fine;
+//cv::cvtColor(img_gray, img_coarse, CV_GRAY2BGR);
+//
+//int thickness = 2;
+//haar.drawCoarse(img_coarse);
+//img_fine = img_coarse.clone();
+//rectangle(img_fine, haar.pupil_rect_fine_, BLUE, thickness, 8);
+//
+//ellipse(img_fine, ellipse_rect, RED, thickness);
+//drawMarker(img_fine, center_fitting, RED, cv::MARKER_CROSS, 20, thickness);
+//
+//imshow("Results", img_fine);
+//waitKey(500);
 
 
 #ifndef M_PupilDetectorHaar_H_
@@ -28,7 +45,6 @@
 
 #include <opencv2/opencv.hpp>
 
-#include <my_lib.h>
 #include "utils.h"
 
 
@@ -181,20 +197,21 @@ public:
 	void fineDetection(const Mat& img_down, const Rect& pupil_rect_coarse, Rect& pupil_rect_fine);
 
 
+	//plot on the original img_BGR.
 	void drawCoarse(Mat& img_BGR, Rect pupil_rect, Rect outer_rect, double max_response, Scalar color = RED)
 	{
-		//直接使用img的原始数据，会修改其内容，可能需要clone一份。
-		rectangle(img_BGR, pupil_rect, color, 1, 8);
-		rectangle(img_BGR, outer_rect, color, 1, 8);
+		int thickness = 1;
+		rectangle(img_BGR, pupil_rect, color, thickness, 8);
+		rectangle(img_BGR, outer_rect, color, thickness, 8);
 		Point center = Point(pupil_rect.x + pupil_rect.width / 2, pupil_rect.y + pupil_rect.height / 2);
-		drawMarker(img_BGR, center, color);
+		drawMarker(img_BGR, center, color, cv::MARKER_CROSS,20,thickness);
 		putNumber(img_BGR, max_response, center, color);
 	}
 
 	// overload
 	void drawCoarse(Mat& img_BGR)
 	{
-		drawCoarse(img_BGR, pupil_rect_coarse_, outer_rect_coarse_, max_response_coarse_, RED);
+		drawCoarse(img_BGR, pupil_rect_coarse_, outer_rect_coarse_, max_response_coarse_, GREEN);
 	}
 
 	static void filterLight(const Mat& img_gray, Mat& img_blur, int tau)

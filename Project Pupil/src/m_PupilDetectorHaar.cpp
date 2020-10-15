@@ -82,9 +82,9 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 
 			if (max_response_coarse < max_response)
 			{
+				max_response_coarse = max_response;
 				pupil_rect_coarse = pupil_rect;
 				//outer_rect_coarse_ = outer_rect;
-				//max_response_coarse = max_response;
 				//mu_inner_ = mu_inner;
 				//mu_outer_ = mu_outer;
 			}

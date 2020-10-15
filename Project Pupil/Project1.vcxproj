@@ -71,11 +71,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>deps\boost;deps\tbb\include;C:\KernelData\0 code lib\opencv\build\include;C:\Users\w9349\OneDrive\document\mycodelib\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtGui;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtCore;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include;$(IncludePath)</IncludePath>
+    <IncludePath>deps\boost;deps\tbb\include;C:\KernelData\0 code lib\opencv\build\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtGui;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtCore;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\KernelData\0 code lib\opencv\mybuild\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>deps\boost;deps\tbb\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtCore;C:\KernelData\0 code lib\opencv\build\include;C:\Users\w9349\OneDrive\document\mycodelib\include;$(IncludePath)</IncludePath>
+    <IncludePath>deps\boost;deps\tbb\include;C:\KernelData\0 code lib\opencv\build\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include;C:\Qt\Qt5.12.3\5.12.3\msvc2017_64\include\QtCore;$(IncludePath)</IncludePath>
     <LibraryPath>C:\KernelData\0 code lib\opencv\mybuild\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
