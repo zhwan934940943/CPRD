@@ -126,7 +126,34 @@ public:
 	}
 
 
+	/* try different methods to filter eye image.
+	*/
+	void filterImg(const Mat& img_gray, Mat& img_blur)
+	{
+		//1 Gaussian
+		cv::GaussianBlur(img_gray, img_blur, Size(5, 5), 0, 0);
 
+		//2 mean shift: can narrow edges.
+		//Mat temp;
+		//cvtColor(img_blur, temp, CV_GRAY2BGR);
+		////measureTime([&]() {bilateralFilter(img_blur, temp, 5, 100, 1, 4); }, "bilateral\t");
+		//measureTime([&]() {pyrMeanShiftFiltering(temp, temp, 20, 20, 2); }, "mean shift\t");
+		//cvtColor(temp, img_blur, CV_BGR2GRAY); 
+
+		//3 morphology operation
+		//close operation: weaken thin eyelashes
+		//open operation: weaken small light spots
+		Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, Size(7, 7));
+		Mat dst;
+		cv::morphologyEx(img_blur, dst, cv::MORPH_CLOSE, kernel, Point(-1, -1), 1);
+		cv::morphologyEx(dst, dst, cv::MORPH_OPEN, kernel, Point(-1, -1), 1);
+		Mat tmp = dst - img_gray;
+		img_blur = dst;
+	}
+
+
+
+	//region-based pupil detection
 	void detectPupilMask(const Mat& img_gray, Mat& img_bw, int illuminationFlag = 0)
 	{
 		if (!illuminationFlag)
@@ -200,6 +227,7 @@ public:
 		}
 	}
 
+	//region-based glint detection
 	void detectGlintMask(const Mat& img_gray, Mat& img_bw)
 	{
 		int thresh = 200;
@@ -211,31 +239,7 @@ public:
 
 
 
-	/* try different methods to filter eye image.
-	*/
-	void filterImg(const Mat& img_gray, Mat& img_blur)
-	{
-		//1 Gaussian
-		cv::GaussianBlur(img_gray, img_blur, Size(5, 5), 0, 0);
-
-		//2 mean shift: can narrow edges.
-		//Mat temp;
-		//cvtColor(img_blur, temp, CV_GRAY2BGR);
-		////measureTime([&]() {bilateralFilter(img_blur, temp, 5, 100, 1, 4); }, "bilateral\t");
-		//measureTime([&]() {pyrMeanShiftFiltering(temp, temp, 20, 20, 2); }, "mean shift\t");
-		//cvtColor(temp, img_blur, CV_BGR2GRAY); 
-
-		//3 morphology operation
-		//close operation: weaken thin eyelashes
-		//open operation: weaken small light spots
-		Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, Size(7, 7));
-		Mat dst;
-		cv::morphologyEx(img_blur, dst, cv::MORPH_CLOSE, kernel, Point(-1, -1), 1);
-		cv::morphologyEx(dst, dst, cv::MORPH_OPEN, kernel, Point(-1, -1), 1);
-		Mat tmp = dst - img_gray;
-		img_blur = dst;
-	}
-
+	
 	void detectPupilContour(const Mat& img_gray, Mat& edges, const Rect& pupil_rect)
 	{
 		//方法1：固定阈值

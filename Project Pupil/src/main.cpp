@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_DEPRECATE
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
 
 #include "dataset_test.h"
 

@@ -144,7 +144,7 @@
     <ClInclude Include="src\dataset_test.h" />
     <ClInclude Include="src\deprecated.h" />
     <ClInclude Include="src\m_PupilDetectorHaar.h" />
-    <ClInclude Include="src\m_pupil_extraction.h" />
+    <ClInclude Include="src\pupil_other_techniques.h" />
     <ClInclude Include="src\PuRe\ElSe.h" />
     <ClInclude Include="src\PuRe\ExCuSe.h" />
     <ClInclude Include="src\PuRe\PupilDetectionMethod.h" />

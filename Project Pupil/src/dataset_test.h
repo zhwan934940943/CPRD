@@ -3,12 +3,13 @@
 #ifndef Dataset_Test_H_
 #define Dataset_Test_H_
 
-
+#include<chrono>
 #include <opencv2/opencv.hpp>
 #include "PuRe/PuRe.h"
 #include "m_PupilDetectorHaar.h"
 
 
+using namespace std::chrono;
 
 class DatasetTest
 {
@@ -48,10 +49,12 @@ public:
 	//The ground truth is the pupil center (x,y)
 	void LPWTest_Haar()
 	{
-		cout << "LPWTest_Haar\n";
 		string method_name = "Haar";
 		string dataset_name = "LPW";
 		dataset_init(dataset_name);
+
+		ofstream logfile(results_dir_ + method_name + "/logfile.txt");
+		logfile << "LPWTest_Haar\n";
 
 		for (int i = 0; i != caselist_.size(); i++)//caselist.size()
 		//int i = 56; //test a case
@@ -59,7 +62,6 @@ public:
 		{
 			//------------------------- 1 case init -------------------------
 			string casename = caselist_[i];
-			cout << "casename = " << casename << endl;
 			
 			//groundtruth file. e.g., 1-1.txt
 			ifstream fin_groundtruth(dataset_dir_ + casename + ".txt");
@@ -74,15 +76,15 @@ public:
 			haar.kf_ = 1.4; //1,1.1,1.2,1.3,1.4,...
 			haar.ratio_outer_ = 1.42;//1.42, 2, 3, 4, 5, 6, 7
 			haar.useSquareHaar_ = 0;
-			haar.useInitRect_ = 0;
+			haar.useInitRect_ = 1;
 			haar.xystep_ = 4;//2,3,4,...
 			haar.whstep_ = 4;//2,3,4,...
 
 			if (haar.useInitRect_)
 				haar.init_rect_ = init_rectlist_[i];
 			
-
-			cout << "useInitRect = " << haar.useInitRect_ << "	"
+			cout << "casename = " << casename << endl
+				<< "useInitRect = " << haar.useInitRect_ << "	"
 				<< "useSquareHaar = " << haar.useSquareHaar_ << "\n"
 				<< "r = " << haar.ratio_outer_ << "	" << "kf = " << haar.kf_ << "	"
 				<< "wh_step = " << haar.whstep_ << "	" << "xy_step = " << haar.xystep_ << "\n";
@@ -97,6 +99,14 @@ public:
 					throw("cannot open file" + errorfile_name);
 			}
 
+			string runtime_record = "runtime " + dataset_name + " " + casename + ".txt";
+			ofstream f_runtime(results_dir_ + method_name + "/" + runtime_record);
+
+			logfile << "casename = " << casename << "\n"
+				<< "useInitRect = " << haar.useInitRect_ << "	"
+				<< "useSquareHaar = " << haar.useSquareHaar_ << "\n"
+				<< "r = " << haar.ratio_outer_ << "	" << "kf = " << haar.kf_ << "	"
+				<< "wh_step = " << haar.whstep_ << "	" << "xy_step = " << haar.xystep_ << "\n";
 
 
 #ifdef RESULT_EXPORT
@@ -107,41 +117,50 @@ public:
 			fine_vid.open(to_string(i) + "fine.avi", CV_FOURCC('M', 'J', 'P', 'G'), 95.0, cv::Size(640, 480), true);
 #endif
 
-			VideoCapture cap(dataset_dir_ + casename + ".avi");
+			VideoCapture cap(dataset_dir_ + casename + ".avi", cv::CAP_OPENCV_MJPEG);
 			double ground_x, ground_y; //groundtruth
 			while (fin_groundtruth >> ground_x)
 			{
 				fin_groundtruth >> ground_y;
 
-				Mat frame;
-				cap >> frame;
-				checkImg(frame);
+				auto t0 = high_resolution_clock::now();
 
+				Mat frame;
+				//cap.grab();
+				//cap.retrieve(frame);
+				cap >> frame;
+				auto t1 = high_resolution_clock::now();
+
+				checkImg(frame);
 				Mat img_gray;
 				img2Gray(frame, img_gray);
 				haar.detect(img_gray);
-
+				auto t2 = high_resolution_clock::now();
+				
 				cv::RotatedRect ellipse_rect;
 				Point2f center_fitting;
 				bool flag = haar.extractEllipse(img_gray, haar.pupil_rect_fine_,
 					ellipse_rect, center_fitting);
+				auto t3 = high_resolution_clock::now();
 
-
+				
 				//show
 				Mat img_coarse, img_fine;
-				cv::cvtColor(img_gray, img_coarse, CV_GRAY2BGR);
+				//cv::cvtColor(img_gray, img_coarse, CV_GRAY2BGR);
+				img_coarse = frame;
 
 				int thickness = 2;
 				haar.drawCoarse(img_coarse);
-				img_fine = img_coarse.clone();
+				img_fine = img_coarse;// img_coarse.clone();
 				rectangle(img_fine, haar.pupil_rect_fine_, BLUE, thickness, 8);
 
 				ellipse(img_fine, ellipse_rect, RED, thickness);
 				drawMarker(img_fine, center_fitting, RED, cv::MARKER_CROSS, 20, thickness);
 
 				imshow("Results", img_fine);
-				waitKey(5);
-
+				auto t4 = high_resolution_clock::now();
+				waitKey(1);
+				
 
 				//calculate & save results
 				bool flag_sucess_inner = haar.pupil_rect_coarse_.contains(Point2f(ground_x, ground_y));
@@ -174,6 +193,17 @@ public:
 						<< error_fitting << endl;
 				}
 
+				auto t5 = high_resolution_clock::now();
+
+				duration<double, milli> elapsed_ms1 = t1 - t0;
+				duration<double, milli> elapsed_ms2 = t2 - t1;
+				duration<double, milli> elapsed_ms3 = t3 - t2;
+				duration<double, milli> elapsed_ms4 = t4 - t3;
+				duration<double, milli> elapsed_ms5 = t5 - t4;
+				f_runtime << elapsed_ms1.count() << "	" << elapsed_ms2.count() << "	" 
+					<< elapsed_ms3.count() << "	" << elapsed_ms4.count() << "	" << elapsed_ms5.count() << endl;
+
+
 
 #ifdef RESULT_EXPORT
 				if (haar.frameNum_ == saveFrameNum)
@@ -189,12 +219,15 @@ public:
 			}//end while
 			fin_groundtruth.close();
 			fout.close();
+			f_runtime.close();
+			
 
 #ifdef RESULT_EXPORT
 			coarse_vid.release();
 			fine_vid.release();
 #endif
 		}//end for
+		logfile.close();
 	}
 
 

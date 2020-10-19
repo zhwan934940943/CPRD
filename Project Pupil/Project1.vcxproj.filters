@@ -80,13 +80,13 @@
     <ClInclude Include="src\Swirski2012\utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\m_pupil_extraction.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\deprecated.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pupil_other_techniques.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
