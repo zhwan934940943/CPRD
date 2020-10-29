@@ -50,6 +50,7 @@
 
 //#define HAAR_TEST
 //#define UNIT_TEST
+#define RECTLIST_SUPPRESSION
 //optimization: exhaustive algorithm
 //1 response,
 //2 haarResponseMap (hot map)
@@ -61,12 +62,6 @@ using cv::Mat;
 using cv::Mat_;
 using cv::Point;
 using cv::Scalar;
-
-namespace myColor
-{
-	const Scalar red = Scalar(0, 0, 255);
-	const Scalar blue = Scalar(255, 0, 0);
-};
 
 
 //TODO: old version, delete
@@ -154,8 +149,17 @@ public:
 		{
 			mu_inner0_ = mu_inner_;
 			mu_outer0_ = mu_outer_;
+			cout << "mu_inner0_=" << mu_inner0_ << "	mu_outer0_=" << mu_outer0_;
+			cout << "	outer/inner=" << mu_outer0_ / mu_inner0_;
+			//kf_ = min(mu_outer0_ / mu_inner0_, 1.5);
+			kf_ = 2 - 0.01*mu_inner0_;
+			cout << "	kf_=" << kf_ << endl;
 		}
 
+		//Mat img_BGR;
+		//img2BGR(img_down, img_BGR);
+		//rectangle(img_BGR, roi_, BLUE, 1, 8);
+		//drawCoarse(img_BGR, pupil_rect_coarse_, outer_rect_coarse_, max_response_coarse_, GREEN);
 
 		//-------------------------- 3 Fine Detection --------------------------
 		/* No fine detection for poor image quality when the intensity in the pupil region is close to,
@@ -448,7 +452,7 @@ private:
 			for (int j = 0; j < rectlist2.size(); ++j)
 			{
 				Rect tmp = rectlist[i] & rectlist2[j];
-				if (tmp.width) //Ïà½»
+				if (tmp.width) //intersect
 				{
 					flag_intersect = true;
 					if (response[i] > response2[j])

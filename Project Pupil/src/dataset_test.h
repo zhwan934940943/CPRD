@@ -49,15 +49,30 @@ public:
 	//The ground truth is the pupil center (x,y)
 	void LPWTest_Haar()
 	{
-		string method_name = "Haar";
 		string dataset_name = "LPW";
 		dataset_init(dataset_name);
 
-		ofstream logfile(results_dir_ + method_name + "/logfile.txt");
+		string method_name = "Haar";
+		double ratio_outer = 1.7;//1.42, 2, 3, 4, 5, 6, 7
+		double kf = 1.5; //1,1.1,1.2,1.3,1.4,...
+		bool useSquareHaar = 0;
+		bool useInitRect = 1;
+		int whstep = 2;//2,3,4,...
+		int xystep = 4;//2,3,4,...
+
+		std::stringstream ss;
+		ss << setprecision(3) << "r" << ratio_outer << " k" << kf << "/";
+		string result_path = results_dir_ + method_name + "/" + ss.str();
+
+		ofstream logfile(result_path + "logfile.txt");
 		logfile << "LPWTest_Haar\n";
+		logfile << "useInitRect = " << useInitRect << "	"
+			<< "useSquareHaar = " << useSquareHaar << "\n"
+			<< "r = " << ratio_outer << "	" << "kf = " << kf << "	"
+			<< "wh_step = " << whstep << "	" << "xy_step = " << xystep << "\n";
 
 		for (int i = 0; i != caselist_.size(); i++)//caselist.size()
-		//int i = 56; //test a case
+		//int i = 6; //test a case
 		//for (int i = 62; i != 64; i++)//caselist.size()
 		{
 			//------------------------- 1 case init -------------------------
@@ -73,12 +88,12 @@ public:
 
 			//------------------------- 2 Haar init -------------------------
 			PupilDetectorHaar haar;
-			haar.kf_ = 1.4; //1,1.1,1.2,1.3,1.4,...
-			haar.ratio_outer_ = 1.42;//1.42, 2, 3, 4, 5, 6, 7
-			haar.useSquareHaar_ = 0;
-			haar.useInitRect_ = 1;
-			haar.xystep_ = 4;//2,3,4,...
-			haar.whstep_ = 4;//2,3,4,...
+			haar.ratio_outer_ = ratio_outer;//1.42, 2, 3, 4, 5, 6, 7
+			haar.kf_ = kf; //1,1.1,1.2,1.3,1.4,...
+			haar.useSquareHaar_ = useSquareHaar;
+			haar.useInitRect_ = useInitRect;
+			haar.whstep_ = whstep;//2,3,4,...
+			haar.xystep_ = xystep;//2,3,4,...
 
 			if (haar.useInitRect_)
 				haar.init_rect_ = init_rectlist_[i];
@@ -89,24 +104,18 @@ public:
 				<< "r = " << haar.ratio_outer_ << "	" << "kf = " << haar.kf_ << "	"
 				<< "wh_step = " << haar.whstep_ << "	" << "xy_step = " << haar.xystep_ << "\n";
 
-
 			//3 results dir
-			string errorfile_name = "r" + to_string((haar.ratio_outer_)) + " "
-				+ dataset_name + " " + casename + ".txt";
-			ofstream fout(results_dir_ + method_name + "/" + errorfile_name);
+			//string errorfile_name = "r" + to_string((haar.ratio_outer_)) + " "
+				//+ dataset_name + " " + casename + ".txt";
+			string errorfile_name = dataset_name + " " + casename + ".txt";
+			ofstream fout(result_path + errorfile_name);
 			{
 				if (!fout.is_open())
 					throw("cannot open file" + errorfile_name);
 			}
 
 			string runtime_record = "runtime " + dataset_name + " " + casename + ".txt";
-			ofstream f_runtime(results_dir_ + method_name + "/" + runtime_record);
-
-			logfile << "casename = " << casename << "\n"
-				<< "useInitRect = " << haar.useInitRect_ << "	"
-				<< "useSquareHaar = " << haar.useSquareHaar_ << "\n"
-				<< "r = " << haar.ratio_outer_ << "	" << "kf = " << haar.kf_ << "	"
-				<< "wh_step = " << haar.whstep_ << "	" << "xy_step = " << haar.xystep_ << "\n";
+			ofstream f_runtime(result_path + runtime_record);
 
 
 #ifdef RESULT_EXPORT
@@ -221,7 +230,7 @@ public:
 			fout.close();
 			f_runtime.close();
 			
-
+			logfile << haar.mu_inner_ << "	" << haar.mu_outer_ << "	" << haar.kf_ << endl;
 #ifdef RESULT_EXPORT
 			coarse_vid.release();
 			fine_vid.release();
@@ -377,8 +386,8 @@ public:
 
 
 			PupilDetectorHaar haar;
-			haar.kf_ = 1.4; //1,1.1,1.2,1.3,1.4,...
-			haar.ratio_outer_ = 1.42;//1.42, 2, 3, 4, 5, 6, 7
+			haar.ratio_outer_ = 1.4;//1.42, 2, 3, 4, 5, 6, 7
+			haar.kf_ = 1.5; //1,1.1,1.2,1.3,1.4,...
 			haar.useSquareHaar_ = 0;
 			haar.useInitRect_ = false;
 			haar.xystep_ = 2;//2,3,4,...

@@ -52,12 +52,11 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 
 	//save the detail of Haar results.
 #ifdef HAAR_TEST
-	ofstream fs("Harr_output" + to_string(int(ratio)) + "+" + getCurrentTimeStr());
+	//ofstream fs("Harr_output" + to_string(int(ratio_outer_)) + "+" + getCurrentTimeStr());
 
-	fs << "ratio" << ratio << endl;
-	fs << "width	response" << endl;
-	fs << fixed << setprecision(2);
-
+	//fs << "ratio" << ratio_outer_ << endl;
+	//fs << "width	response" << endl;
+	//fs << fixed << setprecision(2);
 	Mat img_BGRall;
 	img2BGR(img_down, img_BGRall);
 #endif
@@ -85,45 +84,47 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 				max_response_coarse = max_response;
 				pupil_rect_coarse = pupil_rect;
 				//outer_rect_coarse_ = outer_rect;
-				//mu_inner_ = mu_inner;
-				//mu_outer_ = mu_outer;
+				//mu_inner_ = mu_inner_t;
+				//mu_outer_ = mu_outer_t;
 			}
 
 			rectlistAll.push_back(pupil_rect);
 			responselistAll.push_back(max_response);
 
 #ifdef HAAR_TEST
-			Mat img_BGR;
-			img2BGR(img_down, img_BGR);
-			draw(img_BGR, pupil_rect, outer_rect, max_response);
-			draw(img_BGRall, pupil_rect, outer_rect, max_response);
-			imshow("Haar features with eye", img_BGR);
-			imshow("img BGRall", img_BGRall);
-			waitKey(30);
-			fs << pupil_rect.x*ratio_downsample << "	" << pupil_rect.y*ratio_downsample << "	"
-				<< pupil_rect.width * ratio_downsample << "	" << max_response << endl;
+			//Mat img_BGR;
+			//img2BGR(img_down, img_BGR);
+			//drawCoarse(img_BGR, pupil_rect, outer_rect,max_response);
+			//drawCoarse(img_BGRall, pupil_rect, outer_rect, max_response);
+			//imshow("Haar features with eye", img_BGR);
+			//imshow("img BGRall", img_BGRall);
+			//waitKey(1);
+			//fs << pupil_rect.x*ratio_downsample << "	" << pupil_rect.y*ratio_downsample << "	"
+			//	<< pupil_rect.width * ratio_downsample << "	" << max_response << endl;
 #endif
 		}//end for height
 	}//end for width
 
-	//plot all detected rect.
-#ifdef HAAR_TEST
-	Mat img_BGR;
-	img2BGR(img_down, img_BGR);
-	rectangle(img_BGR, roi_, BLUE, 1, 8);
 
-	//plot all detected rectangles for each w
-	for (int i = 0; i < rectlistAll.size(); i++)
-	{
-		Rect outer_rect;
-		outer_rect = rectScale(rectlistAll[i], ratio_outer_, true, useSquareHaar_);
-		rectangle(img_BGR, rectlistAll[i], RED, 1, 8);
-	}
-#endif
 	
 	//2.3 Rectangle list suppression. 
 	if (useInitRect_)
 	{
+
+#ifdef RECTLIST_SUPPRESSION
+		Mat img_BGR;
+		img2BGR(img_down, img_BGR);
+		rectangle(img_BGR, roi_, BLUE, 1, 8);
+
+		//plot all detected rectangles for each w
+		for (int i = 0; i < rectlistAll.size(); i++)
+			rectangle(img_BGR, rectlistAll[i], RED, 1, 8);
+		imshow("rect list", img_BGR);
+
+		Mat img_BGR2;
+		img2BGR(img_down, img_BGR2);
+#endif
+
 		//non-maximum suppression
 		vector<double> responselist;
 		vector<Rect> inner_rectlist;
@@ -132,18 +133,19 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 		//	(params.init_rect.y + params.init_rect.height) / 2);
 
 		//based on the distance to the initial center.
-		Point2f initCenter((init_rect_down_.x + init_rect_down_.width) / 2,
-			(init_rect_down_.y + init_rect_down_.height) / 2);
+		Point2f initCenter(init_rect_down_.x + init_rect_down_.width / 2,
+			init_rect_down_.y + init_rect_down_.height/ 2);
 		double dis = 10000;
 		for (int i = 0; i < inner_rectlist.size(); i++)
 		{
-#ifdef HAAR_TEST
+#ifdef RECTLIST_SUPPRESSION
 			Rect outer_rect = rectScale(inner_rectlist[i], ratio_outer_, true, useSquareHaar_);
-			draw(img_BGR, inner_rectlist[i], outer_rect, responselist[i]);
+			drawCoarse(img_BGR2, inner_rectlist[i], outer_rect, responselist[i],GREEN);
+			imshow("rect list suppresion", img_BGR2);
 #endif
 
-			Point2f iCenter(inner_rectlist[i].x + (inner_rectlist[i].width) / 2,
-				inner_rectlist[i].y + (inner_rectlist[i].height) / 2);
+			Point2f iCenter(inner_rectlist[i].x + inner_rectlist[i].width / 2,
+				inner_rectlist[i].y + inner_rectlist[i].height / 2);
 			double dis_t = norm(initCenter - iCenter);
 			if (dis_t < dis)
 			{
@@ -331,7 +333,7 @@ double PupilDetectorHaar::getResponseMap(const Mat & integral_img, \
 #endif
 		}
 #ifdef HAAR_TEST
-	showHotMap(response_map);
+	//showHotMap(response_map);
 #endif
 
 	return max_response;

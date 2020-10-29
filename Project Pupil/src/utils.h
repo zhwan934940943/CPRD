@@ -207,7 +207,7 @@ inline void img2BGR(const Mat& src, Mat& img_color)
 	2 an image scale
 */
 inline Rect rectScale(const Rect& rect, const float& ratio, 
-	bool center_flag = true, bool useSquareHaar = true)
+	bool center_flag = true, bool shape_square = true)
 {
 	int width = rect.width;
 	int height = rect.height;
@@ -215,7 +215,7 @@ inline Rect rectScale(const Rect& rect, const float& ratio,
 	{
 		//Scales a rect based on the center.
 		//Rect()内小数的默认处理方式是ceil
-		if (useSquareHaar)
+		if (shape_square)
 			return Rect(rect.x - (ratio - 1)*width / 2, rect.y - (ratio - 1)*height / 2, \
 				width*ratio, height*ratio);
 		else //horizontal Haar
