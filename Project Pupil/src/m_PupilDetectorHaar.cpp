@@ -31,11 +31,12 @@ void PupilDetectorHaar::initialSearchRange(const Mat& img_down)
 		else
 			roi_ = boundary;
 
-
 		//w strategy
 		//w can not be too small, otherwise be easily affected by light spots.
-		width_min_ = init_rect_down_.width;
-		width_max_ = width_min_ * 3.0 / 2;
+		//width_min_ = max(init_rect_down_.width *0.6,24);
+		//width_min_ = min(init_rect_down_.width, 24);
+		width_min_ = init_rect_down_.width *1;
+		width_max_ = min(init_rect_down_.width * 1.5, 120);
 	}
 }
 
@@ -52,11 +53,12 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 
 	//save the detail of Haar results.
 #ifdef HAAR_TEST
-	//ofstream fs("Harr_output" + to_string(int(ratio_outer_)) + "+" + getCurrentTimeStr());
+	ofstream fs("Harr_output" + to_string(int(ratio_outer_)));
 
-	//fs << "ratio" << ratio_outer_ << endl;
-	//fs << "width	response" << endl;
-	//fs << fixed << setprecision(2);
+	fs << "ratio" << ratio_outer_ << endl;
+	fs << "width	response" << endl;
+	fs << fixed << setprecision(2);
+
 	Mat img_BGRall;
 	img2BGR(img_down, img_BGRall);
 #endif
@@ -92,15 +94,15 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 			responselistAll.push_back(max_response);
 
 #ifdef HAAR_TEST
-			//Mat img_BGR;
-			//img2BGR(img_down, img_BGR);
-			//drawCoarse(img_BGR, pupil_rect, outer_rect,max_response);
-			//drawCoarse(img_BGRall, pupil_rect, outer_rect, max_response);
-			//imshow("Haar features with eye", img_BGR);
-			//imshow("img BGRall", img_BGRall);
-			//waitKey(1);
-			//fs << pupil_rect.x*ratio_downsample << "	" << pupil_rect.y*ratio_downsample << "	"
-			//	<< pupil_rect.width * ratio_downsample << "	" << max_response << endl;
+			Mat img_BGR;
+			img2BGR(img_down, img_BGR);
+			drawCoarse(img_BGR, pupil_rect, outer_rect,max_response);
+			drawCoarse(img_BGRall, pupil_rect, outer_rect, max_response);
+			imshow("Haar features with eye", img_BGR);
+			imshow("img BGRall", img_BGRall);
+			waitKey(1);
+			fs << pupil_rect.x*ratio_downsample_ << "	" << pupil_rect.y*ratio_downsample_ << "	"
+				<< pupil_rect.width * ratio_downsample_ << "	" << max_response << endl;
 #endif
 		}//end for height
 	}//end for width
@@ -121,8 +123,8 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 			rectangle(img_BGR, rectlistAll[i], RED, 1, 8);
 		imshow("rect list", img_BGR);
 
-		Mat img_BGR2;
-		img2BGR(img_down, img_BGR2);
+		
+		img2BGR(img_down, img_rect_suppression_);
 #endif
 
 		//non-maximum suppression
@@ -140,8 +142,8 @@ void PupilDetectorHaar::coarseDetection(const Mat& img_down, Rect& pupil_rect_co
 		{
 #ifdef RECTLIST_SUPPRESSION
 			Rect outer_rect = rectScale(inner_rectlist[i], ratio_outer_, true, useSquareHaar_);
-			drawCoarse(img_BGR2, inner_rectlist[i], outer_rect, responselist[i],GREEN);
-			imshow("rect list suppresion", img_BGR2);
+			drawCoarse(img_rect_suppression_, inner_rectlist[i], outer_rect, responselist[i],RED);
+			imshow("rect list suppresion", img_rect_suppression_);
 #endif
 
 			Point2f iCenter(inner_rectlist[i].x + inner_rectlist[i].width / 2,
@@ -302,7 +304,7 @@ double PupilDetectorHaar::getResponseMap(const Mat & integral_img, \
 #ifdef HAAR_TEST
 	Mat response_map = Mat::zeros(integral_img.size(), CV_32F);
 	xystep = 1;
-	roi = Rect(0, 0, integral_img.cols, integral_img.rows);
+	//roi = Rect(0, 0, integral_img.cols, integral_img.rows);
 #endif
 	decltype(max_response_coarse_) max_response = -255;
 
@@ -333,7 +335,32 @@ double PupilDetectorHaar::getResponseMap(const Mat & integral_img, \
 #endif
 		}
 #ifdef HAAR_TEST
-	//showHotMap(response_map);
+	showHotMap(response_map);
+
+	//cv::FileStorage fs("responseMap.xml", cv::FileStorage::WRITE);
+	//fs << "response_map" << response_map;
+	//fs.release();
+
+
+	Mat I = response_map;
+	fstream fs("responseMap.txt", ios::out);
+	if (!fs.fail())
+	{
+		cout << "start writing responseMap.txt" << endl;
+		for (int i = 0; i < I.rows; i++)
+		{
+			for (int j = 0; j < I.cols; j++)
+			{
+				fs << int(I.at<float>(i, j)) << "\t";
+			}
+			fs << std::endl;
+		}
+		cout << "finish writing responseMap.txt" << endl;
+	}
+	else
+		cout << "can not open" << endl;
+	fs.close();
+
 #endif
 
 	return max_response;

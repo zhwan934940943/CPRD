@@ -786,6 +786,18 @@ inline bool fitPupilEllipseSwirski(const Mat& img_blur, Mat& edges, cv::RotatedR
 
 
 
-
+/*
+@param src is grayscale or colored.
+*/
+inline void showHotMap(const Mat& src)
+{
+	Mat src2;
+	cv::normalize(src, src2, 0, 255, cv::NORM_MINMAX, CV_8UC3);
+	Mat dst;
+	//src2 must be grayscale or colored of type CV_8UC1 or CV_8UC3.
+	cv::applyColorMap(src2, dst, cv::COLORMAP_HOT);
+	imshow("hot map", dst);
+	waitKey(30);
+}
 
 #endif

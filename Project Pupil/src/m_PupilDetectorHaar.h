@@ -156,10 +156,10 @@ public:
 			cout << "	kf_=" << kf_ << endl;
 		}
 
-		//Mat img_BGR;
-		//img2BGR(img_down, img_BGR);
+		
+		img2BGR(img_down, img_coarse_);
 		//rectangle(img_BGR, roi_, BLUE, 1, 8);
-		//drawCoarse(img_BGR, pupil_rect_coarse_, outer_rect_coarse_, max_response_coarse_, GREEN);
+		drawCoarse(img_coarse_, pupil_rect_coarse_, outer_rect_coarse_, max_response_coarse_, RED);
 
 		//-------------------------- 3 Fine Detection --------------------------
 		/* No fine detection for poor image quality when the intensity in the pupil region is close to,
@@ -215,7 +215,7 @@ public:
 	// overload
 	void drawCoarse(Mat& img_BGR)
 	{
-		drawCoarse(img_BGR, pupil_rect_coarse_, outer_rect_coarse_, max_response_coarse_, GREEN);
+		drawCoarse(img_BGR, pupil_rect_coarse_, outer_rect_coarse_, max_response_coarse_, RED);
 	}
 
 	static void filterLight(const Mat& img_gray, Mat& img_blur, int tau)
@@ -476,8 +476,8 @@ private:
 public:
 	//--------------------input parameters--------------------
 	//Haar parameters
-	double ratio_outer_ = 1.42;
-	double kf_ = 1.4;//the weight of the response function
+	double ratio_outer_ = 1.4;
+	double kf_ = 1.5;//the weight of the response function
 	bool useSquareHaar_ = false;//default [horizontal Haar outer]
 
 	bool useInitRect_ = false;
@@ -486,9 +486,10 @@ public:
 
 	//optimization parameters
 	int width_min_ = 31; //img.width/10
+	//int width_min_ = 10;
 	int width_max_ = 240 / 2;//img.height/2
-	int whstep_ = 4;
-	int xystep_ = 4;
+	int whstep_ = 1;
+	int xystep_ = 1;
 
 	//dynamic parameters
 	int frameNum_ = 0;
@@ -513,6 +514,9 @@ public:
 	size_t iterate_count_ = 0;
 
 
+	//output
+	Mat img_rect_suppression_;
+	Mat img_coarse_;
 
 private:
 	Size target_resolution_ = Size(320, 240);
